@@ -1,0 +1,3744 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Keccak-f variant Dependant Visualizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+
+:root {
+    --bg: #0f172a;
+    --panel-bg: #1e293b;
+    --lane-bg: #334155;
+    --lane-border: #475569;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --highlight: #fbbf24; /* Gold for changes */
+    --op-text: #a5b4fc;
+    --mono: "Fira Code", monospace;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.header {
+    background: var(--panel-bg);
+    border-bottom: 1px solid var(--lane-border);
+    padding: 0.9rem 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.title-group h1 { margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: -0.025em; color: var(--accent); line-height: 1.2; }
+.title-group span { font-size: 0.7rem; color: var(--text-muted); line-height: 1.3; }
+.controls { display: flex; gap: 0.5rem; align-items: center; }
+
+button {
+    background: var(--lane-bg);
+    border: 1px solid var(--lane-border);
+    color: var(--text-main);
+    padding: 0.45rem 0.8rem;
+    border-radius: 0.35rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+    line-height: 1.3;
+}
+button:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+button.primary { background: var(--accent); color: #0f172a; }
+
+
+.view-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--panel-bg);
+    border-radius: 0.375rem;
+    padding: 0.2rem;
+    margin: 0 0.5rem;
+}
+
+.tab-btn {
+    background: transparent;
+    border: 1px solid var(--lane-border);
+    padding: 0.45rem 0.95rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-radius: 0.35rem;
+    transition: all 0.2s;
+    margin: 0 2px;
+    line-height: 1.3;
+}
+
+.tab-btn:hover {
+    background: var(--lane-bg);
+    color: var(--text-main);
+    border-color: var(--accent);
+}
+
+.tab-btn.active {
+    background: var(--accent);
+    color: #0f172a;
+    border: 3px solid var(--accent);
+}
+
+
+.workspace {
+    display: grid;
+    grid-template-columns: 280px 1fr 450px; /* Sidebar - Matrix - DetailPanel */
+    gap: 0.75rem;
+    padding: 0.75rem;
+    flex: 1;
+    min-height: 0;
+}
+
+.workspace.timeline-mode {
+    grid-template-columns: 1fr; /* Full width for timeline */
+}
+
+
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--lane-border);
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.panel-header {
+    padding: 0.6rem 1rem;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--lane-border);
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+
+.info-scroll { overflow-y: auto; flex: 1; }
+.info-row {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--lane-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.info-label { font-size: 0.8rem; color: var(--text-muted); }
+.info-val { font-family: 'Fira Code', 'Courier New', monospace; font-weight: bold; color: var(--accent); font-size: 0.9rem; }
+
+.global-context-strip {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 0.6rem 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    z-index: 99;
+    flex-shrink: 0;
+}
+
+.context-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.context-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.context-value {
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.context-value.mode {
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.context-value.current {
+    color: var(--accent);
+    border-color: rgba(56, 189, 248, 0.5);
+}
+
+.context-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--lane-border);
+    opacity: 0.5;
+}
+
+.step-desc {
+    padding: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-main);
+    background: rgba(56, 189, 248, 0.05);
+    border-left: 3px solid var(--accent);
+    margin: 1rem;
+    border-radius: 0.25rem;
+}
+
+
+.matrix-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 1rem;
+    background: #0b1120;
+}
+
+.keccak-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 800px;
+    max-height: 100%;
+}
+
+.lane {
+    background: var(--lane-bg);
+    border: 1px solid var(--lane-border);
+    border-radius: 0.375rem;
+    aspect-ratio: 5/4;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.1s, background-color 0.2s, border 0.2s;
+    user-select: none;
+}
+
+.lane:hover {
+    border: 3px solid var(--accent);
+    transform: scale(1.02);
+    z-index: 10;
+    background: #475569;
+    box-shadow: 0 4px 8px rgba(56, 189, 248, 0.2);
+}
+
+.lane.changed {
+    background-color: var(--highlight) !important;
+    color: #000 !important;
+    border: 3px solid #fff;
+    transform: scale(1.05);
+    z-index: 20;
+    box-shadow: 0 0 15px var(--highlight);
+}
+
+
+.lane-coord { position: absolute; top: 2px; left: 4px; font-size: 0.6rem; opacity: 0.5; font-family: 'Fira Code', 'Courier New', monospace; }
+.lane-hex { font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.75rem; font-weight: 700; }
+.lane-bits { 
+    font-family: 'Fira Code', 'Courier New', monospace; 
+    font-size: 0.5rem; 
+    margin-top: 2px; 
+    opacity: 0.6; 
+    text-align: center;
+    line-height: 1;
+    padding: 0 2px;
+}
+
+
+.bit-char {
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.bit-char:hover {
+    color: var(--highlight);
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+}
+
+.bit-highlighted {
+    color: var(--highlight) !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8) !important;
+    background: rgba(251, 191, 36, 0.2);
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+.bit-faded {
+    opacity: 0.3 !important;
+}
+
+
+.detail-content {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+    font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+.math-box {
+    background: #000;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid #334155;
+    font-size: 0.75rem;
+    color: var(--op-text);
+    margin-top: 0.5rem;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.6;
+    text-align: left !important;
+}
+
+
+.math-box .value,
+.math-box .binary,
+.math-box .hex {
+    white-space: pre-wrap;
+    font-family: var(--mono);
+}
+
+.op-label { color: #64748b; font-weight: bold; display: block; margin-bottom: 4px;}
+.op-val   { color: #e2e8f0; display: block; word-break: break-word; overflow-wrap: anywhere; }
+.op-res   { color: var(--highlight); font-weight: bold; display: block; word-break: break-word; overflow-wrap: anywhere; }
+.op-line  { border-bottom: 1px solid #475569; margin: 10px 0; }
+
+.detail-hint {
+    text-align: center;
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+    margin-top: 3rem;
+    opacity: 0.5;
+}
+
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--lane-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+
+.timeline-container {
+    display: none;
+    overflow-x: auto;
+    overflow-y: auto;
+    padding: 1rem 0 1rem 0;
+    background: #0b1120;
+    height: 100%;
+}
+
+.timeline-container.active {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.timeline-track {
+    display: flex;
+    gap: 2rem;
+    min-width: min-content;
+    padding: 0.5rem 2rem 2rem 2rem;
+    align-items: center;
+}
+
+.round-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 180px;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.3s;
+}
+
+
+.round-column:nth-child(4n+1) { background: rgba(30, 41, 59, 0.3); }
+.round-column:nth-child(4n+3) { background: rgba(15, 23, 42, 0.3); }
+.round-column:nth-child(4n+5) { background: rgba(30, 41, 59, 0.3); }
+.round-column:nth-child(4n+7) { background: rgba(15, 23, 42, 0.3); }
+
+.round-header {
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--accent);
+    text-align: center;
+    padding: 0.5rem 1rem;
+    background: var(--panel-bg);
+    border: 2px solid var(--lane-border);
+    border-radius: 0.5rem;
+    white-space: nowrap;
+    min-width: 100px;
+}
+
+
+.round-column:nth-child(4n+1) .round-header { 
+    border-color: #475569;
+    background: rgba(71, 85, 105, 0.2);
+}
+.round-column:nth-child(4n+3) .round-header { 
+    border-color: #64748b;
+    background: rgba(100, 116, 139, 0.2);
+}
+.round-column:nth-child(4n+5) .round-header { 
+    border-color: #475569;
+    background: rgba(71, 85, 105, 0.2);
+}
+.round-column:nth-child(4n+7) .round-header { 
+    border-color: #64748b;
+    background: rgba(100, 116, 139, 0.2);
+}
+
+.step-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.step-card {
+    background: var(--lane-bg);
+    border: 2px solid var(--lane-border);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+}
+
+.step-card:hover {
+    transform: translateY(-2px);
+    border: 3px solid var(--accent);
+    box-shadow: 0 4px 8px rgba(56, 189, 248, 0.2);
+}
+
+.step-card.step-theta { border-left: 4px solid #93c5fd; }
+.step-card.step-rhopi { border-left: 4px solid #fcba03; }
+.step-card.step-chi { border-left: 4px solid #32a852; }
+.step-card.step-iota { border-left: 4px solid #eb4034; }
+
+
+.step-card.step-theta { 
+    background: linear-gradient(135deg, rgba(147, 197, 253, 0.25), rgba(147, 197, 253, 0.15));
+    border: 2px solid rgba(147, 197, 253, 0.6);
+}
+.step-card.step-rhopi { 
+    background: linear-gradient(135deg, rgba(252, 186, 3, 0.25), rgba(252, 186, 3, 0.15));
+    border: 2px solid rgba(252, 186, 3, 0.6);
+}
+.step-card.step-chi { 
+    background: linear-gradient(135deg, rgba(50, 168, 82, 0.25), rgba(50, 168, 82, 0.15));
+    border: 2px solid rgba(50, 168, 82, 0.6);
+}
+.step-card.step-iota { 
+    background: linear-gradient(135deg, rgba(235, 64, 52, 0.25), rgba(235, 64, 52, 0.15));
+    border: 2px solid rgba(235, 64, 52, 0.6);
+}
+
+.step-name {
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+.step-variant {
+    font-size: 0.7rem;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    padding: 0.25rem 0.5rem;
+    background: rgba(56, 189, 248, 0.2);
+    border-radius: 0.25rem;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.step-card.variant-0 .step-variant { background: rgba(156, 163, 175, 0.3); color: #9ca3af; }
+.step-card.variant-1 .step-variant { background: rgba(251, 191, 36, 0.3); color: #fbbf24; }
+.step-card.variant-2 .step-variant { background: rgba(34, 211, 238, 0.3); color: #22d3ee; }
+.step-card.variant-3 .step-variant { background: rgba(232, 121, 249, 0.3); color: #e879f9; }
+
+.step-card.active {
+    border: 3px solid #06b6d4;
+    background: rgba(6, 182, 212, 0.2);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.7);
+    transform: scale(1.08);
+    z-index: 10;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+        transform: scale(1.05);
+    }
+    50% { 
+        box-shadow: 0 0 25px rgba(6, 182, 212, 0.8);
+        transform: scale(1.06);
+    }
+}
+
+.step-card.active {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.round-arrow {
+    font-size: 1.5rem;
+    color: var(--lane-border);
+    align-self: center;
+    transition: all 0.3s ease;
+}
+
+.round-arrow.active {
+    color: var(--accent);
+    text-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+    transform: scale(1.2);
+}
+
+
+.schedule-container {
+    display: none;
+    overflow-y: auto;
+    padding: 2rem;
+    height: 100%;
+    background: #0b1120;
+}
+
+.schedule-container.active {
+    display: block;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.schedule-section {
+    background: var(--panel-bg);
+    border: 1px solid var(--lane-border);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+.schedule-section h3 {
+    margin: 0 0 1rem 0;
+    color: var(--accent);
+    font-size: 1.1rem;
+    border-bottom: 2px solid var(--lane-border);
+    padding-bottom: 0.5rem;
+}
+
+.schedule-section h4 {
+    margin: 1.5rem 0 0.5rem 0;
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+.code-block {
+    background: #000;
+    border: 1px solid #334155;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.75rem;
+    color: #e2e8f0;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+}
+
+.prng-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.75rem;
+}
+
+.prng-table th {
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--accent);
+    padding: 0.5rem;
+    text-align: left;
+    border: 1px solid var(--lane-border);
+}
+
+.prng-table td {
+    padding: 0.5rem;
+    border: 1px solid var(--lane-border);
+    color: var(--text-main);
+}
+
+.prng-table tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.calc-step {
+    background: rgba(56, 189, 248, 0.05);
+    border-left: 3px solid var(--accent);
+    padding: 1rem;
+    margin: 0.75rem 0;
+    border-radius: 0.375rem;
+}
+
+.calc-step-header {
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.calc-formula {
+    background: #000;
+    border: 1px solid #334155;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.7rem;
+    color: #a5b4fc;
+    overflow-x: auto;
+}
+
+.calc-result {
+    color: var(--highlight);
+    font-weight: 700;
+    font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+.section-divider {
+    border-top: 2px solid var(--lane-border);
+    margin: 2rem 0;
+    position: relative;
+}
+
+.section-divider::after {
+    content: '◆';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel-bg);
+    padding: 0 1rem;
+    color: var(--accent);
+}
+
+.flow-diagram {
+    text-align: center;
+    color: var(--text-main);
+}
+
+.flow-box {
+    background: var(--lane-bg);
+    border: 2px solid var(--accent);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem auto;
+    max-width: 300px;
+}
+
+.flow-arrow {
+    font-size: 2rem;
+    color: var(--accent);
+    margin: 0.5rem 0;
+}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="controls">
+        <input type="text" id="inputString" placeholder="Plaintext..." 
+               style="background: var(--lane-bg); border: 1px solid var(--lane-border); 
+                      color: var(--text-main); padding: 0.45rem 0.75rem; border-radius: 0.35rem; 
+                      font-size: 0.8rem; width: 160px; font-family: 'Fira Code', 'Courier New', monospace;" 
+               value="" 
+               onkeydown="if(event.key==='Enter') regenerate()" />
+        <input type="text" id="keyString" placeholder="Key..." 
+               style="background: var(--lane-bg); border: 1px solid var(--lane-border); 
+                      color: var(--text-main); padding: 0.45rem 0.75rem; border-radius: 0.35rem; 
+                      font-size: 0.8rem; width: 140px; font-family: 'Fira Code', 'Courier New', monospace;" 
+               value="" 
+               onkeydown="if(event.key==='Enter') regenerate()" 
+               title="Leave empty to use plaintext for schedule, or enter key to determine schedule" />
+        <button onclick="regenerate()" class="primary">🔄 Generate</button>
+        <div class="view-tabs">
+            <button class="tab-btn" onclick="switchView('matrix')" id="tabMatrix">Matrix</button>
+            <button class="tab-btn active" onclick="switchView('timeline')" id="tabTimeline">Round Flow</button>
+            <button class="tab-btn" onclick="switchView('schedule')" id="tabSchedule">Schedule Info</button>
+        </div>
+        <button onclick="restart()">⏮ Restart</button>
+        <button onclick="reset()">🔄 Reset</button>
+        <button onclick="stepBack()">◀ Prev</button>
+        <button onclick="togglePlay()" id="btnPlay" class="primary">▶ Play</button>
+        <button onclick="stepForward()">Next ▶</button>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: 0.6rem;">
+            <label style="font-size: 0.75rem; color: var(--text-muted);">Speed:</label>
+            <input type="range" id="speedSlider" min="50" max="1000" value="500" step="50" 
+                   oninput="updateSpeed(this.value)"
+                   style="width: 90px; cursor: pointer; height: 22px;" />
+            <span id="speedLabel" style="font-size: 0.75rem; color: var(--accent); font-family: 'Fira Code', 'Courier New', monospace; min-width: 40px;">0.5x</span>
+        </div>
+    </div>
+</div>
+
+<!-- Global Context Strip -->
+<div class="global-context-strip">
+    <div class="context-section">
+        <span class="context-label">Mode:</span>
+        <span class="context-value mode" id="ctxMode">-</span>
+    </div>
+    <div class="context-divider"></div>
+    <div class="context-section">
+        <span class="context-label">Seed:</span>
+        <span class="context-value" id="ctxSeed">-</span>
+    </div>
+    <div class="context-divider"></div>
+    <div class="context-section">
+        <span class="context-label">PRNG:</span>
+        <span class="context-value" id="ctxPRNG">AES-256-CTR</span>
+    </div>
+    <div class="context-divider"></div>
+    <div class="context-section">
+        <span class="context-label">Rounds:</span>
+        <span class="context-value" id="ctxRounds">24</span>
+    </div>
+    <div class="context-divider"></div>
+    <div class="context-section">
+        <span class="context-label">Current:</span>
+        <span class="context-value current" id="ctxCurrent">-</span>
+    </div>
+</div>
+
+<div class="workspace">
+    <div class="panel">
+        <div class="panel-header">Status</div>
+        <div class="info-scroll">
+            <div class="info-row">
+                <span class="info-label">Mode</span>
+                <span class="info-val" id="dispMode" style="color: #10b981;">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Plaintext</span>
+                <span class="info-val" id="dispPlaintext" style="font-size: 0.75rem;">-</span>
+            </div>
+            <div class="info-row" id="keyRow" style="display: none;">
+                <span class="info-label">Key</span>
+                <span class="info-val" id="dispKey" style="font-size: 0.75rem; color: #10b981;">-</span>
+            </div>
+            <div style="height: 1px; background: var(--lane-border); margin: 0.5rem 0;"></div>
+            <div class="info-row">
+                <span class="info-label">Round</span>
+                <span class="info-val" id="dispRound">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Step</span>
+                <span class="info-val" id="dispStepType">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Variant</span>
+                <span class="info-val" id="dispVariant">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Progress</span>
+                <span class="info-val" id="dispProgress">0%</span>
+            </div>
+            
+            <div style="height: 1px; background: var(--lane-border); margin: 0.5rem 0;" id="hashDivider" style="display: none;"></div>
+            <div id="hashDigestSection" style="display: none;">
+                <div class="panel-header" style="margin-top: 0.5rem; background:transparent; border:none; padding-left:0;">Final Hash Digest (256-bit)</div>
+                <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 0.3rem;">
+                    <span class="info-label" style="font-size: 0.7rem;">Hexadecimal</span>
+                    <div id="dispHashHex" style="font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.7rem; color: var(--accent); word-break: break-all; line-height: 1.4; background: #000; padding: 0.5rem; border-radius: 0.25rem; width: 100%; box-sizing: border-box;">-</div>
+                </div>
+                <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 0.3rem; margin-top: 0.5rem;">
+                    <span class="info-label" style="font-size: 0.7rem;">Binary</span>
+                    <div id="dispHashBin" style="font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.6rem; color: #94a3b8; word-break: break-all; line-height: 1.5; background: #000; padding: 0.5rem; border-radius: 0.25rem; width: 100%; box-sizing: border-box; max-height: 150px; overflow-y: auto;">-</div>
+                </div>
+            </div>
+            
+            <div class="panel-header" style="margin-top: 1rem; background:transparent; border:none; padding-left:0;">Matrix Display Mode</div>
+            <div style="display: flex; gap: 0.25rem; background: var(--lane-bg); border-radius: 0.35rem; padding: 0.2rem; margin-top: 0.5rem;">
+                <button onclick="setMatrixMode('values')" id="btnMatrixValues" 
+                        style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.75rem; background: var(--accent); color: #000; border: 1px solid var(--accent); border-radius: 0.35rem; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+                    Values
+                </button>
+                <button onclick="setMatrixMode('delta')" id="btnMatrixDelta" 
+                        style="flex: 1; padding: 0.45rem 0.8rem; font-size: 0.75rem; background: transparent; color: var(--text-muted); border: 1px solid var(--lane-border); border-radius: 0.35rem; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+                    Δ Changes
+                </button>
+            </div>
+            
+            <div class="panel-header" style="margin-top: 1rem; background:transparent; border:none; padding-left:0;">Algorithm Context</div>
+            <div class="step-desc" id="dispDesc">
+                Initializing...
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="matrix-container">
+            <div class="keccak-grid" id="grid">
+                </div>
+        </div>
+        <div class="timeline-container" id="timelineContainer">
+            <div class="timeline-track" id="timelineTrack">
+                <!-- Timeline rounds will be generated here -->
+            </div>
+        </div>
+        <div class="schedule-container" id="scheduleContainer">
+            <div class="schedule-section">
+                <h3>Complete Schedule Generation Calculation</h3>
+                <div id="scheduleCalculations"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="detail-content" id="detailPanel">
+            <div class="detail-hint">
+                Click any lane in the matrix<br>to inspect the binary operations.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+if (typeof BigInt === "undefined") {
+    alert("This visualizer requires BigInt support (ES2020+). Please use a modern browser (Chrome 67+, Firefox 68+, Safari 14+, Edge 79+).");
+    throw new Error("BigInt not supported");
+}
+
+
+const RC = [
+  0x0000000000000001n,0x0000000000008082n,0x800000000000808an,0x8000000080008000n,
+  0x000000000000808bn,0x0000000080000001n,0x8000000080008081n,0x8000000000008009n,
+  0x000000000000008an,0x0000000000000088n,0x0000000080008009n,0x000000008000000an,
+  0x000000008000808bn,0x800000000000008bn,0x8000000000008089n,0x8000000000008003n,
+  0x8000000000008002n,0x8000000000000080n,0x000000000000800an,0x800000008000000an,
+  0x8000000080008081n,0x8000000000008080n,0x0000000080000001n,0x8000000080008008n
+];
+const ROTC = [1,3,6,10,15,21,28,36,45,55,2,14,27,41,56,8,25,43,62,18,39,61,20,44];
+const PILN = [10,7,11,17,18,3,5,16,8,21,24,4,15,23,19,13,12,2,20,14,22,9,6,1];
+
+const rol64 = (x, r) => {
+    const rBig = typeof r === 'bigint' ? r : BigInt(r);
+    return ((x << rBig) | (x >> (64n - rBig))) & 0xFFFFFFFFFFFFFFFFn;
+};
+const toHex = (n) => "0x" + n.toString(16).padStart(16,'0');
+const toBin = (n) => {
+    const bin = n.toString(2).padStart(64,'0');
+    const wrappedBits = bin.split('').map((bit, idx) => 
+        `<span class="bit-char" data-bit-pos="${idx}">${bit}</span>`
+    ).join('');
+    return wrappedBits.match(/.{1,56}/g).join('\u00A0');
+};
+const toBinShort = (n) => n.toString(2).padStart(64,'0').substring(0,16) + "...";
+
+function sha256(input) {
+    const K = [
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+        0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+        0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+        0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+        0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+        0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+        0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+    ];
+    
+    const rotr = (n, x) => (x >>> n) | (x << (32 - n));
+    const ch = (x, y, z) => (x & y) ^ (~x & z);
+    const maj = (x, y, z) => (x & y) ^ (x & z) ^ (y & z);
+    const sig0 = x => rotr(2, x) ^ rotr(13, x) ^ rotr(22, x);
+    const sig1 = x => rotr(6, x) ^ rotr(11, x) ^ rotr(25, x);
+    const gamma0 = x => rotr(7, x) ^ rotr(18, x) ^ (x >>> 3);
+    const gamma1 = x => rotr(17, x) ^ rotr(19, x) ^ (x >>> 10);
+    
+    const encoder = new TextEncoder();
+    const data = encoder.encode(input);
+    const len = data.length;
+    const bitLen = len * 8;
+    
+    const padLen = ((len + 8) % 64 < 56) ? (56 - (len + 8) % 64) : (120 - (len + 8) % 64);
+    const padded = new Uint8Array(len + 1 + padLen + 8);
+    padded.set(data);
+    padded[len] = 0x80;
+    
+    for (let i = 0; i < 8; i++) {
+        padded[padded.length - 1 - i] = (bitLen >>> (i * 8)) & 0xff;
+    }
+    
+    let H = [
+        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+        0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+    ];
+    
+    for (let offset = 0; offset < padded.length; offset += 64) {
+        const W = new Array(64);
+        
+        for (let t = 0; t < 16; t++) {
+            W[t] = (padded[offset + t * 4] << 24) |
+                   (padded[offset + t * 4 + 1] << 16) |
+                   (padded[offset + t * 4 + 2] << 8) |
+                   padded[offset + t * 4 + 3];
+        }
+        for (let t = 16; t < 64; t++) {
+            W[t] = (gamma1(W[t-2]) + W[t-7] + gamma0(W[t-15]) + W[t-16]) >>> 0;
+        }
+        
+        let [a, b, c, d, e, f, g, h] = H;
+        
+        for (let t = 0; t < 64; t++) {
+            const T1 = (h + sig1(e) + ch(e, f, g) + K[t] + W[t]) >>> 0;
+            const T2 = (sig0(a) + maj(a, b, c)) >>> 0;
+            h = g; g = f; f = e; e = (d + T1) >>> 0;
+            d = c; c = b; b = a; a = (T1 + T2) >>> 0;
+        }
+        
+        H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0;
+        H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
+        H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0;
+        H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
+    }
+    
+    const hash = new Uint8Array(32);
+    for (let i = 0; i < 8; i++) {
+        hash[i * 4] = (H[i] >>> 24) & 0xff;
+        hash[i * 4 + 1] = (H[i] >>> 16) & 0xff;
+        hash[i * 4 + 2] = (H[i] >>> 8) & 0xff;
+        hash[i * 4 + 3] = H[i] & 0xff;
+    }
+    return hash;
+}
+
+// PRNG
+// AES-256 S-box for SubBytes
+const AES_SBOX = new Uint8Array([
+    0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
+    0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
+    0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
+    0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
+    0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
+    0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
+    0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
+    0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
+    0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
+    0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
+    0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
+    0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
+    0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
+    0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
+    0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
+    0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
+]);
+
+const AES_RCON = new Uint8Array([0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a]);
+
+class AESCTR {
+  constructor(seed_bytes) {
+    this.key = new Uint8Array(32);
+    this.counter = new Uint8Array(16);
+    this.keystream = new Uint8Array(16);
+    this.pos = 16;
+    
+    this.key.set(seed_bytes.slice(0, 32));
+    
+    this.expandedKey = this.expandKey();
+  }
+  
+  expandKey() {
+    const expanded = new Uint8Array(240);
+    expanded.set(this.key);
+    
+    for (let i = 8; i < 60; i++) {
+      let temp = new Uint8Array(4);
+      temp.set(expanded.slice((i - 1) * 4, i * 4));
+      
+      if (i % 8 === 0) {
+        const t = temp[0];
+        temp[0] = temp[1]; temp[1] = temp[2]; temp[2] = temp[3]; temp[3] = t;
+        temp[0] = AES_SBOX[temp[0]];
+        temp[1] = AES_SBOX[temp[1]];
+        temp[2] = AES_SBOX[temp[2]];
+        temp[3] = AES_SBOX[temp[3]];
+        temp[0] ^= AES_RCON[i / 8 - 1];
+      } else if (i % 8 === 4) {
+        temp[0] = AES_SBOX[temp[0]];
+        temp[1] = AES_SBOX[temp[1]];
+        temp[2] = AES_SBOX[temp[2]];
+        temp[3] = AES_SBOX[temp[3]];
+      }
+      
+      for (let j = 0; j < 4; j++) {
+        expanded[i * 4 + j] = expanded[(i - 8) * 4 + j] ^ temp[j];
+      }
+    }
+    return expanded;
+  }
+  
+  gmul(a, b) {
+    let p = 0;
+    for (let i = 0; i < 8; i++) {
+      if (b & 1) p ^= a;
+      const hi = a & 0x80;
+      a = (a << 1) & 0xFF;
+      if (hi) a ^= 0x1b;
+      b >>= 1;
+    }
+    return p;
+  }
+  
+  encryptBlock(input, expandedKey) {
+    const state = new Uint8Array(input);
+    let temp;
+    
+    // Initial AddRoundKey
+    for (let i = 0; i < 16; i++) {
+      state[i] ^= expandedKey[i];
+    }
+    
+    for (let round = 1; round < 14; round++) {
+      for (let i = 0; i < 16; i++) {
+        state[i] = AES_SBOX[state[i]];
+      }
+      
+      temp = state[1]; state[1] = state[5]; state[5] = state[9]; state[9] = state[13]; state[13] = temp;
+      temp = state[2]; state[2] = state[10]; state[10] = temp;
+      temp = state[6]; state[6] = state[14]; state[14] = temp;
+      temp = state[15]; state[15] = state[11]; state[11] = state[7]; state[7] = state[3]; state[3] = temp;
+      
+      if (round < 13) {
+        for (let c = 0; c < 4; c++) {
+          const s0 = state[c * 4], s1 = state[c * 4 + 1], s2 = state[c * 4 + 2], s3 = state[c * 4 + 3];
+          state[c * 4] = this.gmul(0x02, s0) ^ this.gmul(0x03, s1) ^ s2 ^ s3;
+          state[c * 4 + 1] = s0 ^ this.gmul(0x02, s1) ^ this.gmul(0x03, s2) ^ s3;
+          state[c * 4 + 2] = s0 ^ s1 ^ this.gmul(0x02, s2) ^ this.gmul(0x03, s3);
+          state[c * 4 + 3] = this.gmul(0x03, s0) ^ s1 ^ s2 ^ this.gmul(0x02, s3);
+        }
+      }
+      
+      for (let i = 0; i < 16; i++) {
+        state[i] ^= expandedKey[round * 16 + i];
+      }
+    }
+    
+    for (let i = 0; i < 16; i++) {
+      state[i] = AES_SBOX[state[i]];
+    }
+    temp = state[1]; state[1] = state[5]; state[5] = state[9]; state[9] = state[13]; state[13] = temp;
+    temp = state[2]; state[2] = state[10]; state[10] = temp;
+    temp = state[6]; state[6] = state[14]; state[14] = temp;
+    temp = state[15]; state[15] = state[11]; state[11] = state[7]; state[7] = state[3]; state[3] = temp;
+    
+    for (let i = 0; i < 16; i++) {
+      state[i] ^= expandedKey[224 + i];
+    }
+    
+    return state;
+  }
+  
+  generateBlock() {
+    this.keystream = this.encryptBlock(this.counter, this.expandedKey);
+    
+    for (let i = 15; i >= 0; i--) {
+      if (++this.counter[i] !== 0) break;
+    }
+    
+    this.pos = 0;
+  }
+  
+  next() {
+    if (this.pos + 8 > 16) {
+      this.generateBlock();
+    }
+    
+    let result = 0n;
+    for (let i = 0; i < 8; i++) {
+      result |= BigInt(this.keystream[this.pos++]) << BigInt(i * 8);
+    }
+    
+    return result;
+  }
+}
+
+function applySHA3Padding(messageBytes) {
+    const rateBits = 1088;
+    const rateBytes = rateBits / 8;
+    
+    const msgBitLen = messageBytes.length * 8;
+    const msgWithDomain = msgBitLen + 2;  // Add 2 bits for domain separator '01'
+    const afterFirstOne = msgWithDomain + 1;
+    
+    const totalBits = Math.ceil(afterFirstOne / rateBits) * rateBits;
+    const paddedBytes = totalBits / 8;
+    
+    const padded = new Uint8Array(paddedBytes);
+    
+    for (let i = 0; i < messageBytes.length; i++) {
+        padded[i] = messageBytes[i];
+    }
+    
+    const offset = messageBytes.length;
+    padded[offset] = 0x06;
+    
+    padded[paddedBytes - 1] |= 0x80;
+    
+    return padded;
+}
+
+function stringToLanes(input, scheduleMode) {
+    const encoder = new TextEncoder();
+    const messageBytes = encoder.encode(input);
+    
+    const lanes = new Array(25).fill(0n);
+    
+    const paddedBytes = applySHA3Padding(messageBytes);
+    
+    const rateBytes = 136;
+    for (let i = 0; i < 17; i++) {
+        let lane = 0n;
+        for (let j = 0; j < 8; j++) {
+            const byteIdx = i * 8 + j;
+            if (byteIdx < paddedBytes.length) {
+                lane |= BigInt(paddedBytes[byteIdx]) << BigInt(j * 8);
+            }
+        }
+        lanes[i] = lane;
+    }
+    // lanes[17] through lanes[24] remain 0 (capacity)
+    
+    return lanes;
+}
+
+let state = {
+    history: [],
+    sequence: [],
+    currentIndex: 0,
+    isPlaying: false,
+    timer: null,
+    viewMode: 'schedule', // 'matrix', 'timeline', or 'schedule'
+    matrixMode: 'values', // 'values' or 'delta'
+    playbackSpeed: 500, // milliseconds between steps
+    seedBytes: null, // Store seed for schedule info display
+    prngOutputs: [], // Store all PRNG outputs for schedule display
+    inputString: "", // Store plaintext
+    keyString: "", // Store key (if provided)
+    scheduleMode: "plaintext" // "plaintext" or "key"
+};
+
+/* --- 4. INIT --- */
+function init() {
+    const inputString = document.getElementById('inputString').value.trim();
+    const keyString = document.getElementById('keyString').value.trim();
+    
+    if (!inputString && !keyString) {
+        alert('⚠️ Please enter at least a plaintext or a key!');
+        return;
+    }
+    
+    if (keyString && !inputString) {
+        alert('⚠️ Key is provided but plaintext is missing!\n\nYou need plaintext to process through the key-based schedule.');
+        return;
+    }
+    
+    if(state.isPlaying) {
+        state.isPlaying = false;
+        clearInterval(state.timer);
+        document.getElementById('btnPlay').innerText = "▶ Play";
+    }
+    
+    let seed;
+    let scheduleSource;
+    
+    if (keyString) {
+        state.scheduleMode = "key";
+        state.keyString = keyString;
+        state.inputString = inputString;
+        scheduleSource = keyString;
+        const domainSeparator = "KECCAK_VARIANT_KEY_PSJ";
+        seed = sha256(domainSeparator + keyString);
+        console.log('MODE: Key-based scheduling (SHA3-256 style)');
+        console.log('Domain Separator:', domainSeparator);
+        console.log('Key:', keyString);
+        console.log('Plaintext:', inputString);
+        console.log('Seed Source:', domainSeparator + keyString);
+    } else {
+        state.scheduleMode = "plaintext";
+        state.keyString = "";
+        state.inputString = inputString;
+        scheduleSource = inputString;
+        // Seed = SHA256("KECCAK_VARIANT_MSG_PSJ" || Plaintext)
+        const domainSeparator = "KECCAK_VARIANT_MSG_PSJ";
+        seed = sha256(domainSeparator + inputString);
+        console.log('MODE: Plaintext-based scheduling (SHA3-256 style)');
+        console.log('Domain Separator:', domainSeparator);
+        console.log('Plaintext:', inputString);
+        console.log('Seed Source:', domainSeparator + inputString);
+    }
+    
+    state.seedBytes = seed;
+    const rng = new AESCTR(seed);
+    
+    const encoder = new TextEncoder();
+    const messageBytes = encoder.encode(inputString);
+    const paddedBytes = applySHA3Padding(messageBytes);
+    state.paddedPlaintext = paddedBytes;
+    
+    const modeLabel = state.scheduleMode === "key" ? `KEY: "${keyString}"` : `MSG: "${inputString}"`;
+    
+    state.sequence = [];
+    
+    state.sequence.push({
+        type: 'PADDING',
+        round: -1,
+        variant: -1,
+        desc: `SHA3-256 Padding Applied\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\nOriginal Message: "${inputString}" (${messageBytes.length} bytes)\nPadding Rule: M || 01 || 10*1\nPadded Length: ${paddedBytes.length} bytes (${paddedBytes.length * 8} bits)\n\nDomain Bits: 01 (SHA3-256 identifier)\nPad Pattern: 1 followed by zeros, ending with 1\nResult: Message fits exactly in ${paddedBytes.length / 136} block(s) of rate (1088 bits)`
+    });
+    
+    state.sequence.push({
+        type: 'INIT_STATE',
+        round: -1,
+        variant: -1,
+        desc: `Initial State Preparation\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\nState Structure: 1600 bits (25 × 64-bit lanes)\n\nRate Portion: 1088 bits (17 lanes) - For message absorption\nCapacity Portion: 512 bits (8 lanes) - Security parameter\n\nAll lanes initialized to:\n  Hex: 0x0000000000000000\n  Binary: 64 zeros\n\nThis clean state ensures deterministic hashing.\nCapacity provides resistance to length-extension attacks.`
+    });
+    
+    state.sequence.push({
+        type: 'ABSORB',
+        round: -1,
+        variant: -1,
+        desc: `Message Absorption Phase\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\nOperation: Padded message ⊕ Rate portion\n\nRate (lanes 0-16): XORed with padded message\nCapacity (lanes 17-24): Remain zero (unchanged)\n\nThe capacity acts as a keyed internal state,\nremaining hidden throughout the absorption phase.\n\nSchedule Mode: ${modeLabel}\nReady for permutation rounds.`
+    });
+    
+    state.prngOutputs = [];
+    
+    // Generate 24 rounds, each with all 4 steps in seed-determined order
+    for(let r=0; r<24; r++) {
+        // Enforce structural constraints: θ before χ, ρπ before χ, χ exactly once, ι last
+        // Only shuffle θ (0) and ρπ (1), then χ (2), then ι (3)
+        let steps = [0,1,2,3];  // THETA, RHO-PI, CHI, IOTA
+        
+        let shuffleOutputs = [];
+        // Shuffle only first two steps (THETA and RHO-PI)
+        const output = rng.next();
+        const swap = Number(output % 2n);
+        if (swap === 1) {
+            [steps[0], steps[1]] = [steps[1], steps[0]];
+        }
+        shuffleOutputs.push({ output, operation: `${output} % 2 = ${swap}`, result: swap === 1 ? 'swap θ↔ρπ' : 'keep θ,ρπ' });
+        
+        state.prngOutputs.push({ round: r, type: 'shuffle', outputs: shuffleOutputs, result: [...steps] });
+        
+        let variantOutputs = [];
+        for(let s of steps) {
+            const output = rng.next();
+            const variant = Number(output % 7n);
+            variantOutputs.push({ step: ["THETA", "RHO-PI", "CHI", "IOTA"][s], output, operation: `${output} % 7`, variant });
+            state.sequence.push({
+                type: ["THETA", "RHO-PI", "CHI", "IOTA"][s],
+                stepId: s,
+                round: r,
+                variant: variant,
+                desc: getDesc(s, variant, r)
+            });
+        }
+        state.prngOutputs.push({ round: r, type: 'variants', outputs: variantOutputs });
+    }
+    
+    state.sequence.push({
+        type: 'OUTPUT',
+        round: 24,  // After round 23
+        variant: -1,
+        desc: `Output Extraction (Squeeze Phase)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSHA3-256 Output: 256 bits (32 bytes)\n\nExtraction: First 4 lanes from rate portion\n  Lane[0]: Bytes 0-7\n  Lane[1]: Bytes 8-15\n  Lane[2]: Bytes 16-23\n  Lane[3]: Bytes 24-31\n\nCapacity (lanes 17-24): Remain internal (not output)\n\nThe 256-bit digest provides:\n  - Collision resistance\n  - Preimage resistance\n  - Second-preimage resistance\n\nThis is your cryptographic hash output.`
+    });
+
+    const paddedState = new Array(25).fill(0n);
+    for (let i = 0; i < 17; i++) {
+        let lane = 0n;
+        for (let j = 0; j < 8; j++) {
+            const byteIdx = i * 8 + j;
+            if (byteIdx < paddedBytes.length) {
+                lane |= BigInt(paddedBytes[byteIdx]) << BigInt(j * 8);
+            }
+        }
+        paddedState[i] = lane;
+    }
+    
+    const zeroState = new Array(25).fill(0n);
+    
+    const absorbedState = stringToLanes(inputString, state.scheduleMode);
+    
+    state.history = [
+        [...paddedState],  // PADDING step
+        [...zeroState],    // INIT_STATE step
+        [...absorbedState] // ABSORB step
+    ];
+    state.inputString = inputString;
+    state.currentIndex = 0;
+    updateUI();
+}
+
+function buildTimeline() {
+    grid.innerHTML = '';
+    for(let i=0; i<25; i++) {
+        const lane = document.createElement('div');
+        lane.className = 'lane';
+        lane.id = `lane-${i}`;
+        lane.onclick = () => showDeepDive(i);
+        lane.innerHTML = `
+            <div class="lane-coord">[${i%5},${Math.floor(i/5)}]</div>
+            <div class="lane-hex" id="hex-${i}"></div>
+            <div class="lane-bits" id="bin-${i}"></div>
+        `;
+        grid.appendChild(lane);
+    }
+
+    // Build Timeline DOM
+    buildTimeline();
+    
+    // Build Schedule Info DOM
+    buildScheduleView();
+    
+    // Add horizontal scroll with mouse wheel (only for primarily vertical scrolls)
+    const timelineContainer = document.getElementById('timelineContainer');
+    timelineContainer.addEventListener('wheel', (e) => {
+        // Only convert vertical scroll to horizontal if in timeline view AND primarily vertical scroll
+        if(state.viewMode === 'timeline' && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            e.preventDefault();
+            timelineContainer.scrollLeft += e.deltaY;
+        }
+    }, { passive: false });
+
+    state.currentIndex = 0;
+    selectedLaneIndex = -1;
+    updateUI();
+}
+
+function buildTimeline() {
+    const track = document.getElementById('timelineTrack');
+    track.innerHTML = '';
+    
+    const flowColumn = document.createElement('div');
+    flowColumn.className = 'round-column';
+    flowColumn.style.minWidth = '135px';
+    flowColumn.style.maxWidth = '135px';
+    flowColumn.style.background = 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(16,185,129,0.08))';
+    flowColumn.style.border = '2px solid rgba(56,189,248,0.3)';
+    
+    const flowHeader = document.createElement('div');
+    flowHeader.className = 'round-header';
+    flowHeader.textContent = 'Schedule Gen';
+    flowHeader.style.background = 'linear-gradient(135deg, #3b82f6, #10b981)';
+    flowHeader.style.fontSize = '0.75rem';
+    flowColumn.appendChild(flowHeader);
+    
+    const flowContent = document.createElement('div');
+    flowContent.className = 'step-flow';
+    flowContent.style.padding = '0.35rem 0.35rem';
+    flowContent.style.fontSize = '0.6rem';
+    flowContent.style.lineHeight = '1.3';
+    
+    const modeColor = state.scheduleMode === 'key' ? '#10b981' : '#93c5fd';
+    const modeIcon = state.scheduleMode === 'key' ? '' : '';
+    const modeLabel = state.scheduleMode === 'key' ? 'Key-Based' : 'Plaintext';
+    const scheduleSource = state.scheduleMode === 'key' ? state.keyString : state.inputString;
+    
+    flowContent.innerHTML = `
+        <div style="margin-bottom: 0.15rem; padding: 0.25rem; background: rgba(${state.scheduleMode === 'key' ? '16,185,129' : '147,197,253'},0.15); border-radius: 0.2rem; border: 2px solid rgba(${state.scheduleMode === 'key' ? '16,185,129' : '147,197,253'},0.4);">
+            <strong style="color: ${modeColor}; font-size: 0.62rem;">${modeIcon} ${modeLabel}</strong>
+            <div style="font-size: 0.53rem; margin-top: 0.05rem; color: var(--text-muted);">${state.scheduleMode === 'key' ? 'Key for schedule' : 'Plaintext'}</div>
+        </div>
+        <div style="margin-bottom: 0.15rem; padding: 0.25rem; background: rgba(147,197,253,0.15); border-radius: 0.2rem; border: 1px solid rgba(147,197,253,0.3);">
+            <strong style="color: #93c5fd; font-size: 0.62rem;">Input</strong>
+            <div style="font-size: 0.53rem; margin-top: 0.05rem; color: var(--text-muted); word-break: break-all;">"${scheduleSource.substring(0,16)}${scheduleSource.length > 16 ? '...' : ''}"</div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-size: 0.8rem; margin: 0.1rem 0;">↓</div>
+        <div style="margin-bottom: 0.15rem; padding: 0.25rem; background: rgba(252,186,3,0.15); border-radius: 0.2rem; border: 1px solid rgba(252,186,3,0.3);">
+            <strong style="color: #fcba03; font-size: 0.62rem;">UTF-8</strong>
+            <div style="font-size: 0.53rem; margin-top: 0.05rem; color: var(--text-muted);">${scheduleSource.length} chars → bytes</div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-size: 0.8rem; margin: 0.1rem 0;">↓</div>
+        <div style="margin-bottom: 0.15rem; padding: 0.25rem; background: rgba(50,168,82,0.15); border-radius: 0.2rem; border: 1px solid rgba(50,168,82,0.3);">
+            <strong style="color: #32a852; font-size: 0.62rem;">SHA-256</strong>
+            <div style="font-size: 0.53rem; margin-top: 0.05rem; color: var(--text-muted);">32-byte seed</div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-size: 0.8rem; margin: 0.1rem 0;">↓</div>
+        <div style="margin-bottom: 0.15rem; padding: 0.25rem; background: rgba(235,64,52,0.15); border-radius: 0.2rem; border: 1px solid rgba(235,64,52,0.3);">
+            <strong style="color: #eb4034; font-size: 0.62rem;">AES-256-CTR</strong>
+            <div style="font-size: 0.53rem; margin-top: 0.05rem; color: var(--text-muted);">256-bit key</div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-size: 0.8rem; margin: 0.1rem 0;">↓</div>
+        <div style="margin-bottom: 0.15rem; padding: 0.25rem; background: rgba(168,85,247,0.15); border-radius: 0.2rem; border: 1px solid rgba(168,85,247,0.3);">
+            <strong style="color: #a855f7; font-size: 0.62rem;">PRNG</strong>
+            <div style="font-size: 0.53rem; margin-top: 0.05rem; color: var(--text-muted);">120 outputs</div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-size: 0.8rem; margin: 0.1rem 0;">↓</div>
+        <div style="padding: 0.25rem; background: rgba(56,189,248,0.15); border-radius: 0.2rem; border: 1px solid rgba(56,189,248,0.3);">
+            <strong style="color: #38bdf8; font-size: 0.62rem;">Schedule</strong>
+            <div style="font-size: 0.53rem; margin-top: 0.05rem; color: var(--text-muted);">24 × 4 steps</div>
+        </div>
+        ${state.scheduleMode === 'key' ? `
+        <div style="text-align: center; color: #10b981; font-size: 0.8rem; margin: 0.1rem 0;">⤵</div>
+        <div style="padding: 0.25rem; background: rgba(16,185,129,0.15); border-radius: 0.2rem; border: 1px solid rgba(16,185,129,0.3);">
+            <strong style="color: #10b981; font-size: 0.62rem;">Process</strong>
+            <div style="font-size: 0.53rem; margin-top: 0.05rem; color: var(--text-muted);">"${state.inputString.substring(0,12)}${state.inputString.length > 12 ? '...' : ''}"</div>
+        </div>
+        ` : ''}
+    `;
+    flowColumn.appendChild(flowContent);
+    track.appendChild(flowColumn);
+    
+    const flowArrow = document.createElement('div');
+    flowArrow.className = 'round-arrow';
+    flowArrow.dataset.arrowTo = '0'; // Arrow pointing to Round 0
+    flowArrow.textContent = '→';
+    flowArrow.style.fontSize = '2rem';
+    flowArrow.style.color = 'var(--accent)';
+    track.appendChild(flowArrow);
+    
+    const preRoundSteps = [];
+    const rounds = [];
+    let outputStep = null;
+    for(let r = 0; r < 24; r++) {
+        rounds[r] = [];
+    }
+    
+    for(let i = 0; i < state.sequence.length; i++) {
+        const step = state.sequence[i];
+        if(step.round === -1) {
+            preRoundSteps.push(step);
+        } else if(step.round === 24) {
+            outputStep = step;
+        } else {
+            if(rounds[step.round]) {
+                rounds[step.round].push(step);
+            }
+        }
+    }
+    
+    preRoundSteps.forEach((step, stepIdx) => {
+        const column = document.createElement('div');
+        column.className = 'round-column';
+        column.style.minWidth = '160px';  // Make pre-round blocks bigger
+        column.style.background = 'rgba(56, 189, 248, 0.05)';
+        column.style.borderColor = '#38bdf8';
+        
+        const header = document.createElement('div');
+        header.className = 'round-header';
+        header.style.background = '#38bdf8';
+        header.style.color = '#0f172a';
+        if(step.type === 'PADDING') {
+            header.textContent = 'Padding';
+        } else if(step.type === 'INIT_STATE') {
+            header.textContent = 'Initialize';
+        } else if(step.type === 'ABSORB') {
+            header.textContent = 'Absorb';
+        }
+        column.appendChild(header);
+        
+        const flow = document.createElement('div');
+        flow.className = 'step-flow';
+        
+        const card = document.createElement('div');
+        card.className = `step-card step-${step.type.toLowerCase()}`;
+        card.dataset.stepIndex = stepIdx;
+        card.style.borderLeft = '4px solid #38bdf8';
+        card.style.cursor = 'pointer';
+        card.style.minHeight = '75px';  // Make cards taller
+        
+        const stepName = document.createElement('div');
+        stepName.className = 'step-name';
+        if(step.type === 'PADDING') {
+            stepName.innerHTML = 'Padding<br><span style="font-size:0.6rem;">M || 01 || 10*1</span>';
+        } else if(step.type === 'INIT_STATE') {
+            stepName.innerHTML = 'Init State<br><span style="font-size:0.6rem;">Rate ← 0, Cap ← 0</span>';
+        } else if(step.type === 'ABSORB') {
+            stepName.innerHTML = '⊕ Absorb<br><span style="font-size:0.6rem;">Rate ⊕ Message</span>';
+        }
+        card.appendChild(stepName);
+        
+        card.onclick = () => {
+            state.currentIndex = stepIdx;
+            updateUI();
+        };
+        
+        flow.appendChild(card);
+        column.appendChild(flow);
+        track.appendChild(column);
+        
+        const arrow = document.createElement('div');
+        arrow.className = 'round-arrow';
+        arrow.dataset.arrowFrom = String(stepIdx);
+        arrow.textContent = '→';
+        track.appendChild(arrow);
+    });
+    
+    rounds.forEach((roundSteps, roundIdx) => {
+        const column = document.createElement('div');
+        column.className = 'round-column';
+        
+        const header = document.createElement('div');
+        header.className = 'round-header';
+        header.textContent = `Round ${roundIdx}`;
+        column.appendChild(header);
+        
+        const flow = document.createElement('div');
+        flow.className = 'step-flow';
+        
+        const slots = [null, null, null, null];
+        
+        roundSteps.forEach(step => {
+            if(step.type === 'CHI') {
+                slots[2] = step;
+            } else if(step.type === 'IOTA') {
+                slots[3] = step;
+            } else if(step.type === 'THETA' || step.type === 'RHO-PI') {
+                // THETA and RHO-PI go in slots 1 or 2 based on their order
+                if(slots[0] === null) {
+                    slots[0] = step;
+                } else {
+                    slots[1] = step;
+                }
+            }
+        });
+        
+        // Create cards for each slot
+        slots.forEach((step, slotIdx) => {
+            if(step) {
+                // Create actual step card
+                const card = document.createElement('div');
+                card.className = `step-card step-${step.type.toLowerCase().replace('-','')} variant-${step.variant}`;
+                
+                // Find this step's index in sequence
+                const stepIndex = state.sequence.findIndex(s => 
+                    s.round === step.round && s.type === step.type && s.variant === step.variant
+                );
+                card.dataset.stepIndex = stepIndex;
+                
+                // Map step types to icons and colors
+                const stepIcons = {
+                    'THETA': { icon: 'θ', color: '#38bdf8' },   // Blue
+                    'RHO-PI': { icon: 'ρπ', color: '#fbbf24' },  // Gold
+                    'CHI': { icon: 'χ', color: '#10b981' },     // Green
+                    'IOTA': { icon: 'ι', color: '#ef4444' }     // Red
+                };
+                
+                const stepInfo = stepIcons[step.type] || { icon: '', color: '#94a3b8' };
+                
+                const stepName = document.createElement('div');
+                stepName.className = 'step-name';
+                stepName.innerHTML = `<span style="color: ${stepInfo.color}; font-weight: bold; margin-right: 0.25rem;">${stepInfo.icon}</span>${step.type}`;
+                
+                const variantBadge = document.createElement('div');
+                variantBadge.className = 'step-variant';
+                variantBadge.textContent = `Variant ${step.variant}`;
+                
+                card.appendChild(stepName);
+                card.appendChild(variantBadge);
+                
+                // Click handler to jump to this step in the matrix view
+                card.onclick = () => {
+                    if(stepIndex !== -1) {
+                        // Switch to matrix view and jump to this step
+                        if(state.viewMode === 'timeline') switchView('matrix');
+                        
+                        // Ensure history is built up to this point
+                        while(state.history.length <= stepIndex) {
+                            state.history.push(executeStep(
+                                state.history[state.history.length - 1], 
+                                state.sequence[state.history.length]
+                            ));
+                        }
+                        state.currentIndex = stepIndex;
+                        updateUI();
+                    }
+                };
+                
+                flow.appendChild(card);
+            } else {
+                // Create empty placeholder slot (greyed out)
+                const placeholder = document.createElement('div');
+                placeholder.className = 'step-card step-placeholder';
+                placeholder.style.opacity = '0.3';
+                placeholder.style.background = 'rgba(100, 116, 139, 0.1)';
+                placeholder.style.border = '1px dashed rgba(100, 116, 139, 0.3)';
+                placeholder.innerHTML = '<div class="step-name" style="color: #64748b;">—</div>';
+                flow.appendChild(placeholder);
+            }
+        });
+        
+        column.appendChild(flow);
+        track.appendChild(column);
+        
+        // Add arrow between rounds (except after last round)
+        if(roundIdx < 23) {
+            const arrow = document.createElement('div');
+            arrow.className = 'round-arrow';
+            arrow.dataset.arrowTo = String(roundIdx + 1); // Arrow points to next round
+            arrow.textContent = '→';
+            track.appendChild(arrow);
+        }
+    });
+    
+    // Add OUTPUT step after Round 23
+    if(outputStep) {
+        // Arrow from Round 23 to OUTPUT
+        const arrow = document.createElement('div');
+        arrow.className = 'round-arrow';
+        arrow.dataset.arrowTo = 'output';
+        arrow.textContent = '→';
+        track.appendChild(arrow);
+        
+        // OUTPUT column
+        const column = document.createElement('div');
+        column.className = 'round-column';
+        column.style.minWidth = '160px';  // Make OUTPUT block bigger
+        column.style.background = 'rgba(16, 185, 129, 0.05)';
+        column.style.borderColor = '#10b981';
+        
+        const header = document.createElement('div');
+        header.className = 'round-header';
+        header.style.background = '#10b981';
+        header.style.color = '#0f172a';
+        header.textContent = 'Output';
+        column.appendChild(header);
+        
+        const flow = document.createElement('div');
+        flow.className = 'step-flow';
+        
+        const card = document.createElement('div');
+        card.className = 'step-card step-output';
+        // Find OUTPUT step's index in sequence
+        const outputIndex = state.sequence.findIndex(s => s.type === 'OUTPUT');
+        card.dataset.stepIndex = outputIndex;
+        card.style.borderLeft = '4px solid #10b981';
+        card.style.cursor = 'pointer';
+        card.style.minHeight = '75px';  // Make card taller
+        
+        const stepName = document.createElement('div');
+        stepName.className = 'step-name';
+        stepName.innerHTML = '📤 Squeeze<br><span style="font-size:0.6rem;">Extract 256 bits</span>';
+        card.appendChild(stepName);
+        
+        card.onclick = () => {
+            state.currentIndex = outputIndex;
+            updateUI();
+        };
+        
+        flow.appendChild(card);
+        column.appendChild(flow);
+        track.appendChild(column);
+    }
+}
+
+function buildScheduleView() {
+    const inputString = state.inputString || "Chowdhury Hasibur";
+    const keyString = state.keyString || "";
+    const calculationsDiv = document.getElementById('scheduleCalculations');
+    
+    let html = '';
+    
+    // ============ SECTION 0: MODE INFORMATION ============
+    html += `<div class="calc-step" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(16, 185, 129, 0.1)); border-left: 4px solid ${state.scheduleMode === 'key' ? '#10b981' : '#38bdf8'};">`;
+    html += `<div class="calc-step-header" style="color: ${state.scheduleMode === 'key' ? '#10b981' : '#38bdf8'}; font-size: 1.1rem;">`;
+    html += `${state.scheduleMode === 'key' ? 'MODE 2: KEY-BASED SCHEDULING' : 'MODE 1: PLAINTEXT-BASED SCHEDULING'}`;
+    html += `</div>`;
+    html += `<div class="code-block">`;
+    
+    if (state.scheduleMode === 'key') {
+        html += `<strong>Key (for schedule):</strong> "${keyString}"\n`;
+        html += `<strong>Plaintext (to process):</strong> "${inputString}"\n`;
+        html += `<strong>Mode:</strong> SHA3-256 Style with Key-Based Schedule\n\n`;
+        html += `→ State initialized with 1600 bits of zeros (capacity=512, rate=1088)\n`;
+        html += `→ PLAINTEXT padded using SHA3-256 rules: M || 01 || 10*1\n`;
+        html += `→ Schedule seed: SHA256("KECCAK_VARIANT_KEY_PSJ" || Key)\n`;
+        html += `→ Padded plaintext XORed with rate portion of state\n`;
+        html += `→ KEY determines the variant schedule (reusable for different plaintexts)\n`;
+        html += `→ 24 rounds applied, output = first 256 bits of rate`;
+    } else {
+        html += `<strong>Plaintext:</strong> "${inputString}"\n`;
+        html += `<strong>Mode:</strong> SHA3-256 Style Processing\n\n`;
+        html += `→ State initialized with 1600 bits of zeros (capacity=512, rate=1088)\n`;
+        html += `→ Plaintext padded using SHA3-256 rules: M || 01 || 10*1\n`;
+        html += `→ Schedule seed: SHA256("KECCAK_VARIANT_MSG_PSJ" || Plaintext)\n`;
+        html += `→ Padded message XORed with rate portion of state\n`;
+        html += `→ 24 rounds applied, output = first 256 bits of rate`;
+    }
+    
+    html += `</div></div>`;
+    
+    // ============ SECTION 1: INPUT PROCESSING ============
+    html += `<div class="section-divider"></div>`;
+    html += `<h4>Step 1: ${state.scheduleMode === 'key' ? 'Key Processing (for Schedule Generation)' : 'Input String Processing'}</h4>`;
+    const scheduleSource = state.scheduleMode === 'key' ? keyString : inputString;
+    html += `<div class="code-block">${state.scheduleMode === 'key' ? 'Key' : 'Input String'}: "${scheduleSource}"\nLength: ${scheduleSource.length} characters</div>`;
+    
+    const encoder = new TextEncoder();
+    const inputBytes = encoder.encode(scheduleSource);
+    html += `<div class="calc-step">`;
+    html += `<div class="calc-step-header">UTF-8 Encoding</div>`;
+    html += `<div class="code-block">`;
+    for(let i = 0; i < inputBytes.length; i++) {
+        html += `Byte[${i}] = '${scheduleSource[i]}' = 0x${inputBytes[i].toString(16).padStart(2, '0')} (${inputBytes[i]})\n`;
+    }
+    html += `</div></div>`;
+    
+    // ============ SECTION 2: SHA-256 HASHING ============
+    html += `<div class="section-divider"></div>`;
+    html += `<h4>Step 2: SHA-256 Hash Calculation ${state.scheduleMode === 'key' ? '(Hashing Domain + Key for Schedule Seed)' : '(Hashing Domain + Plaintext for Schedule Seed)'}</h4>`;
+    html += `<div class="code-block">SHA-256 is a cryptographic hash function that produces a 256-bit (32-byte) output.\nIt uses message padding, compression rounds with 64 constants, and bitwise operations.\n\n`;
+    if (state.scheduleMode === 'key') {
+        html += `Domain Separator: "KECCAK_VARIANT_KEY_PSJ"\n`;
+        html += `Key: "${keyString}"\n`;
+        html += `Input to SHA-256: "KECCAK_VARIANT_KEY_PSJ${keyString}"\n\n`;
+        html += `NOTE: Domain separator distinguishes the seed for this variant system.\n      The KEY generates the schedule, and plaintext "${inputString}" will be processed.`;
+    } else {
+        html += `Domain Separator: "KECCAK_VARIANT_MSG_PSJ"\n`;
+        html += `Plaintext: "${inputString}"\n`;
+        html += `Input to SHA-256: "KECCAK_VARIANT_MSG_PSJ${inputString}"\n\n`;
+        html += `NOTE: Domain separator distinguishes the seed for this variant system.\n      The same plaintext will be processed through the generated schedule.`;
+    }
+    html += `</div>`;
+    
+    html += `<div class="calc-step">`;
+    html += `<div class="calc-step-header">SHA-256 Output (Seed)</div>`;
+    html += `<div class="code-block">`;
+    for(let i = 0; i < state.seedBytes.length; i++) {
+        html += `Seed[${i.toString().padStart(2, ' ')}] = 0x${state.seedBytes[i].toString(16).padStart(2, '0')}`;
+        if((i+1) % 8 === 0) html += '\n';
+        else html += '  ';
+    }
+    html += `</div></div>`;
+    
+    // ============ SECTION 3: AES-256-CTR INITIALIZATION ============
+    html += `<div class="section-divider"></div>`;
+    html += `<h4>Step 3: AES-256-CTR CSPRNG Initialization</h4>`;
+    html += `<div class="code-block">AES-256-CTR is a cryptographically motivated pseudorandom number generator.\nIt uses AES-256 encryption in counter mode with a 256-bit key and 128-bit counter.</div>`;
+    
+    html += `<div class="calc-step">`;
+    html += `<div class="calc-step-header">AES-256 Key Initialization (256 bits from seed)</div>`;
+    html += `<div class="calc-formula">`;
+    html += `key = [`;
+    for(let i = 0; i < 32; i++) {
+        html += `0x${state.seedBytes[i].toString(16).padStart(2,'0')}`;
+        if(i < 31) html += `, `;
+        if((i + 1) % 8 === 0 && i < 31) html += `\n       `;
+    }
+    html += `]\n\n`;
+    html += `<span class="calc-result">256-bit AES key set from seed</span>`;
+    html += `</div></div>`;
+    
+    html += `<div class="calc-step">`;
+    html += `<div class="calc-step-header">Counter Initialization (starts at zero)</div>`;
+    html += `<div class="calc-formula">`;
+    html += `counter = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,\n`;
+    html += `           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]\n\n`;
+    html += `<span class="calc-result">128-bit counter initialized to zero</span>\n`;
+    html += `Counter will increment after each block encryption`;
+    html += `</div></div>`;
+    
+    // ============ SECTION 4: ROUND-BY-ROUND GENERATION ============
+    html += `<div class="section-divider"></div>`;
+    html += `<h4>Step 4: Round-by-Round Schedule Generation (24 Rounds)</h4>`;
+    html += `<div class="code-block">Each round requires 5 PRNG outputs:\n  - 1 output to determine if θ and ρπ swap (modulo 2)\n  - 4 outputs for variant selection (one per step, modulo 7 → variants 0-6)\n\nStructural Constraints:\n  - Only θ (THETA) and ρπ (RHO-PI) can swap positions\n  - χ (CHI) must come after θ and ρπ (non-linearity after diffusion)\n  - ι (IOTA) must be last (asymmetry injection)\n\nAES-256-CTR Properties:\n  - Key Size: 256 bits (32 bytes)\n  - Block Size: 128 bits (16 bytes)\n  - Rounds: 14 (SubBytes, ShiftRows, MixColumns, AddRoundKey)\n  - Security: NIST approved specification\n\nVariant Range: Each step now has 7 variants (0-6)</div>`;
+    
+    // Regenerate PRNG with detailed tracking
+    const rng_detailed = new AESCTR(state.seedBytes);
+    
+    // Show only Round 0 initially
+    for(let r = 0; r < 1; r++) {
+        html += `<div class="calc-step" style="background: rgba(${r%2===0?'59,130,246':'16,185,129'}, 0.05);">`;
+        html += `<div class="calc-step-header" style="font-size: 1rem; color: ${r%2===0?'#93c5fd':'#32a852'};">Round ${r}</div>`;
+        
+        // Step Order Determination (Only θ and ρπ can swap)
+        html += `<div style="margin: 1rem 0; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 0.25rem;">`;
+        html += `<strong style="color: #fbbf24;">Step Order Determination (θ and ρπ swap only)</strong><br><br>`;
+        
+        let steps = [0, 1, 2, 3]; // THETA, RHO-PI, CHI, IOTA
+        const stepNames = ["THETA", "RHO-PI", "CHI", "IOTA"];
+        
+        // Only one PRNG call to determine if θ and ρπ swap
+        html += `<div class="calc-formula" style="background: #0a0a0a; margin: 0.5rem 0;">`;
+        html += `<strong>PRNG Call ${5*r + 1} (Swap θ↔ρπ?):</strong>\n`;
+        html += `AES-256-CTR: Encrypt(counter) using 256-bit key\n`;
+        html += `Counter = 0x${rng_detailed.counter.slice(0, 16).reduce((s, b) => s + b.toString(16).padStart(2, '0'), '')}\n\n`;
+        
+        // Generate random number using AES-CTR
+        const output = rng_detailed.next();
+        html += `AES Encryption:\n`;
+        html += `  1. SubBytes (S-box substitution)\n`;
+        html += `  2. ShiftRows (row permutation)\n`;
+        html += `  3. MixColumns (column mixing)\n`;
+        html += `  4. AddRoundKey (XOR with round key)\n`;
+        html += `  × 14 rounds total\n\n`;
+        html += `<span class="calc-result">output = 0x${output.toString(16).padStart(16,'0')} (${output})</span>\n\n`;
+        
+        // Apply swap decision
+        const swap = Number(output % 2n);
+        html += `Modulo: swap = ${output} % 2 = <span class="calc-result">${swap}</span>\n`;
+        html += `Decision: ${swap === 1 ? 'SWAP θ↔ρπ' : 'KEEP θ,ρπ order'}\n`;
+        html += `Array: [${steps.map(s => stepNames[s]).join(', ')}] → `;
+        
+        if (swap === 1) {
+            [steps[0], steps[1]] = [steps[1], steps[0]];
+        }
+        
+        html += `[${steps.map(s => stepNames[s]).join(', ')}]\n`;
+        html += `<div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(251,191,36,0.1); border-radius: 0.25rem; font-size: 0.85rem; color: #94a3b8;">`;
+        html += `Note: χ and ι are structurally fixed (χ must be after θ/ρπ, ι must be last)`;
+        html += `</div>`;
+        html += `</div>`;
+        
+        html += `<div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(56,189,248,0.1); border-radius: 0.25rem;">`;
+        html += `<strong style="color: #38bdf8;">Final Step Order: ${steps.map(s => stepNames[s]).join(' → ')}</strong>`;
+        html += `</div></div>`;
+        
+        html += `<div style="margin: 1rem 0; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 0.25rem;">`;
+        html += `<strong style="color: #a855f7;">Variant Selection for Each Step</strong><br><br>`;
+        
+        for(let s of steps) {
+            html += `<div class="calc-formula" style="background: #0a0a0a; margin: 0.5rem 0;">`;
+            html += `<strong>PRNG Call ${5*r + 1 + (steps.indexOf(s)+1)} (Variant for ${stepNames[s]}):</strong>\n`;
+            html += `AES-256-CTR: Encrypt(counter) with 256-bit key\n`;
+            html += `Counter = 0x${rng_detailed.counter.slice(0, 16).reduce((s, b) => s + b.toString(16).padStart(2, '0'), '')}\n\n`;
+            
+            const output = rng_detailed.next();
+            html += `AES-256 Encryption (14 rounds):\n`;
+            html += `  SubBytes → ShiftRows → MixColumns → AddRoundKey\n\n`;
+            html += `<span class="calc-result">output = 0x${output.toString(16).padStart(16,'0')} (${output})</span>\n\n`;
+            
+            const variant = Number(output % 7n);
+            html += `Variant = ${output} % 7 = <span class="calc-result">${variant}</span>\n`;
+            html += `${stepNames[s]} will use Variant ${variant}`;
+            html += `</div>`;
+        }
+        
+        html += `</div></div>`;
+    }
+    
+    // ============ COLLAPSED ROUNDS 1-23 ============
+    html += `<div style="margin: 2rem 0; text-align: center;">`;
+    html += `<button onclick="toggleRemainingRounds()" id="toggleRoundsBtn" style="
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #3b82f6, #10b981);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(56,189,248,0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.3)';">
+        ▼ Show Remaining Rounds (1-23)
+    </button></div>`;
+    
+    html += `<div id="remainingRounds" style="display: none;">`;
+    
+    // Generate rounds 1-23
+    for(let r = 1; r < 24; r++) {
+        html += `<div class="calc-step" style="background: rgba(${r%2===0?'59,130,246':'16,185,129'}, 0.05);">`;
+        html += `<div class="calc-step-header" style="font-size: 1rem; color: ${r%2===0?'#93c5fd':'#32a852'};">Round ${r}</div>`;
+        
+        // Step Order Determination (Only θ and ρπ can swap)
+        html += `<div style="margin: 1rem 0; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 0.25rem;">`;
+        html += `<strong style="color: #fbbf24;">Step Order Determination (θ and ρπ swap only)</strong><br><br>`;
+        
+        let steps = [0, 1, 2, 3]; // THETA, RHO-PI, CHI, IOTA
+        const stepNames = ["THETA", "RHO-PI", "CHI", "IOTA"];
+        
+        html += `<div class="calc-formula" style="background: #0a0a0a; margin: 0.5rem 0;">`;
+        html += `<strong>PRNG Call ${5*r + 1} (Swap θ↔ρπ?):</strong>\n`;
+        html += `AES-256-CTR: Encrypt(counter) using 256-bit key\n`;
+        html += `Counter = 0x${rng_detailed.counter.slice(0, 16).reduce((s, b) => s + b.toString(16).padStart(2, '0'), '')}\n\n`;
+        
+        const output = rng_detailed.next();
+        html += `AES Encryption (14 rounds): SubBytes → ShiftRows → MixColumns → AddRoundKey\n`;
+        html += `<span class="calc-result">output = 0x${output.toString(16).padStart(16,'0')} (${output})</span>\n\n`;
+        
+        const swap = Number(output % 2n);
+        html += `Modulo: swap = ${output} % 2 = <span class="calc-result">${swap}</span>\n`;
+        html += `Decision: ${swap === 1 ? 'SWAP θ↔ρπ' : 'KEEP θ,ρπ order'}\n`;
+        html += `Array: [${steps.map(s => stepNames[s]).join(', ')}] → `;
+        
+        if (swap === 1) {
+            [steps[0], steps[1]] = [steps[1], steps[0]];
+        }
+        
+        html += `[${steps.map(s => stepNames[s]).join(', ')}]`;
+        html += `</div>`;
+        
+        html += `<div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(56,189,248,0.1); border-radius: 0.25rem;">`;
+        html += `<strong style="color: #38bdf8;">Final Step Order: ${steps.map(s => stepNames[s]).join(' → ')}</strong>`;
+        html += `</div></div>`;
+        
+        // Variant Selection
+        html += `<div style="margin: 1rem 0; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 0.25rem;">`;
+        html += `<strong style="color: #a855f7;">Variant Selection for Each Step</strong><br><br>`;
+        
+        for(let s of steps) {
+            html += `<div class="calc-formula" style="background: #0a0a0a; margin: 0.5rem 0;">`;
+            html += `<strong>PRNG Call ${5*r + 1 + (steps.indexOf(s)+1)} (Variant for ${stepNames[s]}):</strong>\n`;
+            html += `AES-256-CTR: Encrypt(counter) with 256-bit key\n`;
+            html += `Counter = 0x${rng_detailed.counter.slice(0, 16).reduce((s, b) => s + b.toString(16).padStart(2, '0'), '')}\n\n`;
+            
+            const output = rng_detailed.next();
+            html += `AES-256 Encryption (14 rounds): SubBytes → ShiftRows → MixColumns → AddRoundKey\n`;
+            html += `<span class="calc-result">output = 0x${output.toString(16).padStart(16,'0')} (${output})</span>\n\n`;
+            
+            const variant = Number(output % 7n);
+            html += `Variant = ${output} % 7 = <span class="calc-result">${variant}</span>\n`;
+            html += `${stepNames[s]} will use Variant ${variant}`;
+            html += `</div>`;
+        }
+        
+        html += `</div></div>`;
+    }
+    
+    html += `</div>`; // Close remainingRounds div
+    
+    // ============ FINAL SUMMARY ============
+    html += `<div class="section-divider"></div>`;
+    html += `<h4>Final Schedule Summary</h4>`;
+    html += `<table class="prng-table">
+        <thead>
+            <tr>
+                <th>Round</th>
+                <th>Step Order</th>
+                <th>Variant Assignments</th>
+                <th>Total PRNG Calls</th>
+            </tr>
+        </thead>
+        <tbody>`;
+    
+    for(let r = 0; r < 24; r++) {
+        const shuffleData = state.prngOutputs.find(p => p.round === r && p.type === 'shuffle');
+        const variantData = state.prngOutputs.find(p => p.round === r && p.type === 'variants');
+        
+        if(shuffleData && variantData) {
+            const stepSymbols = shuffleData.result.map(s => ["θ", "ρπ", "χ", "ι"][s]);
+            const stepNames = shuffleData.result.map(s => ["THETA", "RHO-PI", "CHI", "IOTA"][s]);
+            const variants = variantData.outputs.map((v, i) => `${stepNames[i]}:V${v.variant}`).join(', ');
+            html += `<tr>
+                <td><strong>R${r}</strong></td>
+                <td>${stepSymbols.join(' → ')}</td>
+                <td style="font-size:0.65rem;">${variants}</td>
+                <td>Calls ${r*5+1}-${r*5+5}</td>
+            </tr>`;
+        }
+    }
+    
+    html += `</tbody></table>`;
+    html += `<div class="code-block">Total PRNG Calls: <span class="calc-result">120</span> (24 rounds × 5 calls per round)\nTotal Unique Steps: <span class="calc-result">96</span> (24 rounds × 4 steps per round)\nSeed Determinism: Same input always produces identical schedule</div>`;
+    
+    calculationsDiv.innerHTML = html;
+}
+
+/* --- 5. STEP LOGIC (Simplified for visualizer) --- */
+function executeStep(A, stepInfo) {
+    try {
+        // Handle pre-round visualization steps (they don't modify state)
+        if(stepInfo.type === 'PADDING' || stepInfo.type === 'INIT_STATE' || 
+           stepInfo.type === 'ABSORB' || stepInfo.type === 'OUTPUT') {
+            // These steps just display existing states, no computation
+            return A ? [...A] : new Array(25).fill(0n);
+        }
+        
+        let nextA = [...A];
+        if(stepInfo.type === 'INIT') return nextA;
+
+        const { stepId, variant, round } = stepInfo;
+        
+        // Validate inputs
+        if(!A || !Array.isArray(A) || A.length !== 25) {
+            throw new Error(`Invalid state array: ${A}`);
+        }
+        if(stepId === undefined || variant === undefined || round === undefined) {
+            throw new Error(`Invalid step info: stepId=${stepId}, variant=${variant}, round=${round}`);
+        }
+        if(stepId < 0 || stepId > 3) {
+            throw new Error(`Invalid stepId: ${stepId}`);
+        }
+        if(variant < 0 || variant > 6) {
+            throw new Error(`Invalid variant: ${variant}`);
+        }
+    
+        if(stepId === 0) { // THETA - Best 7 Variants
+        const C = new Array(5).fill(0n);
+        const D = new Array(5).fill(0n);
+        
+        if(variant === 0) {
+            // Canonical Theta (Branch Number: 4)
+            for(let x=0;x<5;x++) C[x] = A[x] ^ A[x+5] ^ A[x+10] ^ A[x+15] ^ A[x+20];
+            for(let x=0;x<5;x++) {
+                let l = (x+4)%5, r = (x+1)%5;
+                D[x] = C[l] ^ rol64(C[r], 1);
+            }
+            for(let i=0; i<25; i++) nextA[i] ^= D[i%5];
+        }
+        else if(variant === 1) {
+            // Theta V8-Weighted: Weighted parity (Branch Number: 12)
+            for(let x=0;x<5;x++) {
+                C[x] = A[x] ^ 
+                       rol64(A[x+5], 1n) ^ 
+                       rol64(A[x+10], 2n) ^ 
+                       rol64(A[x+15], 3n) ^
+                       rol64(A[x+20], 5n);
+            }
+            for(let x=0;x<5;x++) {
+                let l = (x+4)%5, r = (x+1)%5;
+                D[x] = C[l] ^ rol64(C[r], 1);
+            }
+            for(let i=0; i<25; i++) nextA[i] ^= D[i%5];
+        }
+        else if(variant === 2) {
+            // Theta V18-RowCol: Row-column hybrid (Branch Number: 14)
+            const R = new Array(5).fill(0n);
+            
+            // Column parities
+            for(let x=0;x<5;x++) C[x] = A[x] ^ A[x+5] ^ A[x+10] ^ A[x+15] ^ A[x+20];
+            
+            // Row parities
+            for(let y=0;y<5;y++) R[y] = A[y*5] ^ A[y*5+1] ^ A[y*5+2] ^ A[y*5+3] ^ A[y*5+4];
+            
+            // Apply both
+            for(let x=0;x<5;x++) {
+                let Dx = C[(x+4)%5] ^ rol64(C[(x+1)%5], 1);
+                for(let y=0;y<5;y++) {
+                    nextA[x + 5*y] ^= Dx ^ rol64(R[(y+1)%5], 1);
+                }
+            }
+        }
+        else if(variant === 3) {
+            // Theta V1-Rot2: Rotation by 2 (Branch Number: 4)
+            for(let x=0;x<5;x++) C[x] = A[x] ^ A[x+5] ^ A[x+10] ^ A[x+15] ^ A[x+20];
+            for(let x=0;x<5;x++) {
+                let l = (x+4)%5, r = (x+1)%5;
+                D[x] = C[l] ^ rol64(C[r], 2);
+            }
+            for(let i=0; i<25; i++) nextA[i] ^= D[i%5];
+        }
+        else if(variant === 4) {
+            // Theta V2-Rot3: Rotation by 3 (Branch Number: 4)
+            for(let x=0;x<5;x++) C[x] = A[x] ^ A[x+5] ^ A[x+10] ^ A[x+15] ^ A[x+20];
+            for(let x=0;x<5;x++) {
+                let l = (x+4)%5, r = (x+1)%5;
+                D[x] = C[l] ^ rol64(C[r], 3);
+            }
+            for(let i=0; i<25; i++) nextA[i] ^= D[i%5];
+        }
+        else if(variant === 5) {
+            // Theta V3-DualRot: Both neighbors rotated (Branch Number: 4)
+            for(let x=0;x<5;x++) C[x] = A[x] ^ A[x+5] ^ A[x+10] ^ A[x+15] ^ A[x+20];
+            for(let x=0;x<5;x++) {
+                let l = (x+4)%5, r = (x+1)%5;
+                D[x] = rol64(C[l], 1) ^ rol64(C[r], 1);
+            }
+            for(let i=0; i<25; i++) nextA[i] ^= D[i%5];
+        }
+        else if(variant === 6) {
+            // Theta V7-Enhanced: Enhanced diffusion with empirical optimization (Branch Number: 17)
+            // Replaces broken V2-BiDir - Focuses on empirical security over pure theory
+            
+            // Column parities with rotation to increase avalanche
+            for(let x=0;x<5;x++) {
+                C[x] = A[x] ^ 
+                       rol64(A[x+5], 7n) ^ 
+                       rol64(A[x+10], 13n) ^ 
+                       A[x+15] ^
+                       rol64(A[x+20], 19n);
+            }
+            
+            // Triple diffusion pass for maximum spread
+            for(let x=0;x<5;x++) {
+                let l = (x+4)%5, r = (x+1)%5;
+                D[x] = C[l] ^ rol64(C[r], 1) ^ rol64(C[(x+2)%5], 5);
+            }
+            
+            // Apply
+            for(let i=0; i<25; i++) nextA[i] ^= D[i%5];
+        }
+    }
+    else if(stepId === 1) { // RHO-PI - Best 7 Variants
+        let B = new Array(25).fill(0n);
+        const rho = [
+            [0,36,3,41,18], [1,44,10,45,2], [62,6,43,15,61], [28,55,25,21,56], [27,20,39,8,14]
+        ];
+        
+        if(variant === 0) {
+            // Canonical RhoPi: Standard Keccak permutation
+            let t = A[1];
+            for(let i=0; i<24; i++) {
+                let j = PILN[i];
+                B[j] = rol64(t, ROTC[i]);
+                t = A[j];
+            }
+            B[0] = A[0];
+        }
+        else if(variant === 1) {
+            // RhoPi V1-Fibonacci: Fibonacci-based rotation offsets
+            const fib_offsets = [
+                [0,1,1,2,3], [5,8,13,21,34], [55,25,16,41,57], [34,27,61,24,21], [45,18,63,7,14]
+            ];
+            for(let x=0; x<5; x++) {
+                for(let y=0; y<5; y++) {
+                    let newX = y;
+                    let newY = (2*x + 3*y) % 5;
+                    let idx = x + 5*y;
+                    let destIdx = newX + 5*newY;
+                    B[destIdx] = rol64(A[idx], fib_offsets[x][y]);
+                }
+            }
+        }
+        else if(variant === 2) {
+            // RhoPi V2-Primes: Prime number rotation offsets
+            const prime_offsets = [
+                [0,2,3,5,7], [11,13,17,19,23], [29,31,37,41,43], [47,53,59,61,1], [7,11,13,17,19]
+            ];
+            for(let x=0; x<5; x++) {
+                for(let y=0; y<5; y++) {
+                    let newX = y;
+                    let newY = (2*x + 3*y) % 5;
+                    let idx = x + 5*y;
+                    let destIdx = newX + 5*newY;
+                    B[destIdx] = rol64(A[idx], prime_offsets[x][y]);
+                }
+            }
+        }
+        else if(variant === 3) {
+            // RhoPi V3-Uniform: Uniformly distributed rotation offsets
+            const uniform_offsets = [
+                [0,3,5,8,10], [13,15,18,21,23], [26,28,31,33,36], [38,41,44,46,49], [51,54,56,59,62]
+            ];
+            for(let x=0; x<5; x++) {
+                for(let y=0; y<5; y++) {
+                    let newX = y;
+                    let newY = (2*x + 3*y) % 5;
+                    let idx = x + 5*y;
+                    let destIdx = newX + 5*newY;
+                    B[destIdx] = rol64(A[idx], uniform_offsets[x][y]);
+                }
+            }
+        }
+        else if(variant === 4) {
+            // RhoPi V5-Transpose: Modified permutation - newX=y, newY=(x+y)%5
+            for(let x=0; x<5; x++) {
+                for(let y=0; y<5; y++) {
+                    let newX = y;
+                    let newY = (x + y) % 5;
+                    let idx = x + 5*y;
+                    let destIdx = newX + 5*newY;
+                    B[destIdx] = rol64(A[idx], rho[x][y]);
+                }
+            }
+        }
+        else if(variant === 5) {
+            // RhoPi V8-PosDep: Position-dependent rotation
+            for(let x=0; x<5; x++) {
+                for(let y=0; y<5; y++) {
+                    let newX = y;
+                    let newY = (2*x + 3*y) % 5;
+                    let idx = x + 5*y;
+                    let destIdx = newX + 5*newY;
+                    // Rotation depends on source and destination position
+                    let rot = ((x * 7 + y * 11) + (newX * 13 + newY * 17)) % 64;
+                    B[destIdx] = rol64(A[idx], rot);
+                }
+            }
+        }
+        else if(variant === 6) {
+            // RhoPi V9-RowMajor: Row-major rotation pattern
+            const row_major_offsets = [
+                [0,1,2,3,5], [8,13,21,34,55], [25,16,9,4,2], [35,39,44,50,57], [15,22,30,39,49]
+            ];
+            for(let x=0; x<5; x++) {
+                for(let y=0; y<5; y++) {
+                    let newX = y;
+                    let newY = (2*x + 3*y) % 5;
+                    let idx = x + 5*y;
+                    let destIdx = newX + 5*newY;
+                    B[destIdx] = rol64(A[idx], row_major_offsets[x][y]);
+                }
+            }
+        }
+        nextA = B;
+    }
+    else if(stepId === 2) { // CHI - Best 7 Variants
+        let C_temp = [...A];
+        
+        if(variant === 0) {
+            // Canonical Chi: A'[x,y] = A[x,y] ^ ((~A[x+1,y]) & A[x+2,y])
+            for(let y=0; y<5; y++) {
+                let temp = new Array(5);
+                for(let x=0; x<5; x++) temp[x] = C_temp[x + 5*y];
+                for(let x=0; x<5; x++) {
+                    nextA[x + 5*y] = temp[x] ^ (~temp[(x+1)%5] & temp[(x+2)%5]);
+                }
+            }
+        }
+        else if(variant === 1) {
+            // Chi V1-Rotated: Pattern a ^ (~c & d)
+            for(let y=0; y<5; y++) {
+                let temp = new Array(5);
+                for(let x=0; x<5; x++) temp[x] = C_temp[x + 5*y];
+                for(let x=0; x<5; x++) {
+                    nextA[x + 5*y] = temp[x] ^ (~temp[(x+2)%5] & temp[(x+3)%5]);
+                }
+            }
+        }
+        else if(variant === 2) {
+            // Chi V2-RotFurther: Pattern a ^ (~d & e)
+            for(let y=0; y<5; y++) {
+                let temp = new Array(5);
+                for(let x=0; x<5; x++) temp[x] = C_temp[x + 5*y];
+                for(let x=0; x<5; x++) {
+                    nextA[x + 5*y] = temp[x] ^ (~temp[(x+3)%5] & temp[(x+4)%5]);
+                }
+            }
+        }
+        else if(variant === 3) {
+            // Chi V3-Reverse: Pattern a ^ (~e & d) - Reverse direction
+            for(let y=0; y<5; y++) {
+                let temp = new Array(5);
+                for(let x=0; x<5; x++) temp[x] = C_temp[x + 5*y];
+                for(let x=0; x<5; x++) {
+                    nextA[x + 5*y] = temp[x] ^ (~temp[(x+4)%5] & temp[(x+3)%5]);
+                }
+            }
+        }
+        else if(variant === 4) {
+            // Chi V12-CondRot: Conditional rotation with AND selector
+            for(let y=0; y<5; y++) {
+                let temp = new Array(5);
+                for(let x=0; x<5; x++) temp[x] = C_temp[x + 5*y];
+                for(let x=0; x<5; x++) {
+                    let b = temp[(x+1)%5];
+                    let c = temp[(x+2)%5];
+                    let d = temp[(x+3)%5];
+                    let rotated_c = rol64(c, 1);
+                    let rotated_d = rol64(d, 3);
+                    nextA[x + 5*y] = temp[x] ^ ((b & rotated_c) | (~b & rotated_d));
+                }
+            }
+        }
+        else if(variant === 5) {
+            // Chi V7-HighNL: High nonlinearity triple-AND replacement for broken V5
+            // Uses triple AND-OR to maximize algebraic degree and prevent linear approximations
+            for(let y=0; y<5; y++) {
+                let temp = new Array(5);
+                for(let x=0; x<5; x++) temp[x] = C_temp[x + 5*y];
+                for(let x=0; x<5; x++) {
+                    let a = temp[x];
+                    let b = temp[(x+1)%5];
+                    let c = temp[(x+2)%5];
+                    let d = temp[(x+3)%5];
+                    // Triple nonlinear term: high algebraic degree = 3
+                    nextA[x + 5*y] = a ^ ((~b & c) | (b & ~c & d));
+                }
+            }
+        }
+        else if(variant === 6) {
+            // Chi V8-Balanced: Balanced nonlinearity with MAJ function
+            // Uses majority function for strong confusion without catastrophic weaknesses
+            for(let y=0; y<5; y++) {
+                let temp = new Array(5);
+                for(let x=0; x<5; x++) temp[x] = C_temp[x + 5*y];
+                for(let x=0; x<5; x++) {
+                    let a = temp[x];
+                    let b = temp[(x+1)%5];
+                    let c = temp[(x+2)%5];
+                    let d = temp[(x+3)%5];
+                    // MAJ(b,c,d) = (b&c) | (b&d) | (c&d) - balanced nonlinearity
+                    let maj = (b & c) | (b & d) | (c & d);
+                    nextA[x + 5*y] = a ^ maj ^ rol64(d, 7);
+                }
+            }
+        }
+    }
+    else if(stepId === 3) { // IOTA - Best 7 Variants
+        
+        const canonical_rc = [
+            0x0000000000000001n, 0x0000000000008082n, 0x800000000000808an,
+            0x8000000080008000n, 0x000000000000808bn, 0x0000000080000001n,
+            0x8000000080008081n, 0x8000000000008009n, 0x000000000000008an,
+            0x0000000000000088n, 0x0000000080008009n, 0x000000008000000an,
+            0x000000008000808bn, 0x800000000000008bn, 0x8000000000008089n,
+            0x8000000000008003n, 0x8000000000008002n, 0x8000000000000080n,
+            0x000000000000800an, 0x800000008000000an, 0x8000000080008081n,
+            0x8000000000008080n, 0x0000000080000001n, 0x8000000080008008n
+        ];
+        
+        const iota_phi_constants = [
+            0x06BC5545CFC8F594n, 0xA4F3CEFF4F1371A9n, 0x432B48B8CE5DEDBEn,
+            0xE162C2724DA869D3n, 0x7F9A3C2BCCF2E5E8n, 0x1DD1B5E54C3D61FDn,
+            0xBC092F9ECB87DE12n, 0x5A40A9584AD25A27n, 0xF8782311CA1CD63Cn,
+            0x96AF9CCB49675251n, 0x34E71684C8B1CE66n, 0xD31E903E47FC4A7Bn,
+            0x715609F7C746C690n, 0x0F8D83B1469142A5n, 0xADC4FD6AC5DBBEBAn,
+            0x4BFC772445263ACFn, 0xEA33F0DDC470B6E4n, 0x886B6A9743BB32F9n,
+            0x26A2E450C305AF0En, 0xC4DA5E0A42502B23n, 0x6311D7C3C19AA738n,
+            0x0149517D40E5234Dn, 0x9F80CB36C02F9F62n, 0x3DB844F03F7A1B77n
+        ];
+        
+        const ca_constants = [
+            0xdcc593ae756195abn, 0xf0f15c12c71b6808n, 0xfba71d7064679f81n,
+            0xfd96e0b1b18ed95fn, 0xdadbdcbb100372cbn, 0xc987c0b67909f069n,
+            0x64bac1a452ebec40n, 0xf51e968d1e10f1e8n, 0x4a2ac120270d9df9n,
+            0x03b893064e487d12n, 0x0374c9c06fa50f63n, 0xa1611e8a0b618d79n,
+            0x5ea41c38037e4e84n, 0xe1409e0cb3ee025fn, 0x9048ad54bc95df4fn,
+            0xcc8940da3d0fc244n, 0x80383a87fc613d0fn, 0x77438338845faf78n,
+            0xb94c598b703659ecn, 0xca6f5bbcf1da3800n, 0x5c9dec36444e0aa3n,
+            0x1010402d5f031aa6n, 0x2dd1a27321830397n, 0x58fefd9faa23983bn
+        ];
+        
+        const sha256_style_constants = [
+            0x428a2f98d728ae22n, 0x7137449123ef65cdn, 0xb5c0fbcfec4d3b2fn,
+            0xe9b5dba58189dbbcn, 0x3956c25bf348b538n, 0x59f111f1b605d019n,
+            0x923f82a4af194f9bn, 0xab1c5ed5da6d8118n, 0xd807aa98a3030242n,
+            0x12835b0145706fben, 0x243185be4ee4b28cn, 0x550c7dc3d5ffb4e2n,
+            0x72be5d74f27b896fn, 0x80deb1fe3b1696b1n, 0x9bdc06a725c71235n,
+            0xc19bf174cf692694n, 0xe49b69c19ef14ad2n, 0xefbe4786384f25e3n,
+            0x0fc19dc68b8cd5b5n, 0x240ca1cc77ac9c65n, 0x2de92c6f592b0275n,
+            0x4a7484aa6ea6e483n, 0x5cb0a9dcbd41fbd4n, 0x76f988da831153b5n
+        ];
+        
+        const pi_constants = [
+            0x243f6a8885a308d3n, 0x13198a2e03707344n, 0xa4093822299f31d0n,
+            0x082efa98ec4e6c89n, 0x452821e638d01377n, 0xbe5466cf34e90c6cn,
+            0xc0ac29b7c97c50ddn, 0x3f84d5b5b5470917n, 0x9216d5d98979fb1bn,
+            0xd1310ba698dfb5acn, 0x2ffd72dbd01adfb7n, 0xb8e1afed6a267e96n,
+            0xba7c9045f12c7f99n, 0x24a19947b3916cf7n, 0x0801f2e2858efc16n,
+            0x636920d871574e69n, 0xa458fea3f4933d7en, 0x0d95748f728eb658n,
+            0x718bcd5882154aeen, 0x7b54a41dc25a59b5n, 0x9c30d5392af26013n,
+            0xc5d1b023286085f0n, 0xca417918b8db38efn, 0x8e79dcb0603a180en
+        ];
+        
+        const e_constants = [
+            0x2b7e151628aed2a6n, 0xabf7158809cf4f3cn, 0x762e7160f38b4da5n,
+            0x6a784d9045190cfen, 0xf324e7738926cfben, 0x5f4bf8d8d8c31d76n,
+            0x3da06c80abb1185en, 0xb4f7c7b5757f5958n, 0x490cfd47d7c19bb4n,
+            0x2158d9554f7b46bcn, 0xed55c4d79fd5f24dn, 0x6613c31c3839a2ddn,
+            0xf8a9a276bcfbfa1cn, 0x877c56284dab79cdn, 0x4c2b3293d20e9e5en,
+            0xa0248876229c6c1dn, 0xd41244d6da212011n, 0x19a4c58dc8544d65n,
+            0xd19d99d435061763n, 0x3e1f0e42d76632c0n, 0x24aa23a41031e7e4n,
+            0xe08f11559139d499n, 0x1c8340a5a3068e4cn, 0x5466861d07c09362n
+        ];
+        
+        // V11-LFSR64 uses dynamic generation, no pre-computed table needed
+        
+        // LFSR helper for V11-LFSR64
+        const lfsr_step = (lfsr) => {
+            // Galois LFSR: If MSB is 1, shift and XOR with polynomial
+            // Poly: x^64 + x^4 + x^3 + x + 1 (CRC-64-ISO)
+            if (lfsr & 0x8000000000000000n) {
+                return (lfsr << 1n) ^ 0x000000000000001Bn;
+            } else {
+                return lfsr << 1n;
+            }
+        };
+        
+        if(variant === 0) {
+            // Canonical Iota: Standard Keccak round constants (symmetry breaker)
+            nextA[0] ^= canonical_rc[round];
+        }
+        else if(variant === 1) {
+            // Iota V9-Phi: Optimal burn-in 67, source (67 + round + 1) * Phi
+            // Guaranteed 64/64 bit coverage and activity
+            nextA[0] ^= iota_phi_constants[round];
+        }
+        else if(variant === 2) {
+            // Iota V10-CA: Rule 30 Cellular Automaton
+            // Pre-computed 64-bit slices with statistical randomness
+            nextA[0] ^= ca_constants[round];
+        }
+        else if(variant === 3) {
+            // Iota V5-SHA256: SHA-256 style constants
+            nextA[0] ^= sha256_style_constants[round];
+        }
+        else if(variant === 4) {
+            // Iota V6-Pi: Nothing-up-my-sleeve (π fractional digits)
+            nextA[0] ^= pi_constants[round];
+        }
+        else if(variant === 5) {
+            // Iota V7-E: Nothing-up-my-sleeve (e fractional digits)
+            nextA[0] ^= e_constants[round];
+        }
+        else if(variant === 6) {
+            // Iota V11-LFSR64: Galois Field Feedback
+            // Start with Pi-based seed and wind forward
+            let lfsr = 0x243f6a8885a308d3n;
+            for(let i = 0; i <= round; i++) {
+                lfsr = lfsr_step(lfsr);
+            }
+            nextA[0] ^= lfsr;
+        }
+    }
+    
+    // Validate output
+    if(!nextA || !Array.isArray(nextA) || nextA.length !== 25) {
+        throw new Error(`Invalid output state: ${nextA}`);
+    }
+    
+    return nextA;
+    } catch(error) {
+        console.error('Error in executeStep:', error);
+        console.error('Step info:', stepInfo);
+        console.error('Input state A:', A);
+        throw error; // Re-throw so stepForward can handle it
+    }
+}
+
+/* --- 6. DEEP DIVE FORMATTER --- */
+let selectedLaneIndex = -1;
+
+function showDeepDive(idx) {
+    selectedLaneIndex = idx;
+    const panel = document.getElementById('detailPanel');
+    const step = state.sequence[state.currentIndex];
+    const currentVal = state.history[state.currentIndex][idx];
+    const prevA = state.currentIndex > 0 ? state.history[state.currentIndex-1] : null;
+    const prevVal = prevA ? prevA[idx] : 0n;
+    const x = idx % 5;
+    const y = Math.floor(idx / 5);
+
+    // Initialize display mode if not set
+    if(!state.laneDisplayMode) state.laneDisplayMode = 'hex';
+
+    // Determine variant display
+    const variantText = step.variant >= 0 ? ` (Variant ${step.variant})` : '';
+    const roundLabel = step.round === -1 ? 'PRE' : (step.round === 24 ? 'POST' : step.round);
+    const roundText = step.round >= 0 || step.round === -1 ? ` · Round ${roundLabel}` : '';
+    
+    let html = `
+        <div style="margin-bottom:1rem; padding-bottom:0.75rem;">
+            <div style="color:#38bdf8; font-weight:bold; font-size:0.95rem; margin-bottom:0.35rem; letter-spacing:0.02em;">
+                Lane Execution Trace — ${step.type}${variantText}
+            </div>
+            <div style="color:#94a3b8; font-size:0.8rem; font-family:'Fira Code',monospace;">
+                A[${x},${y}]${roundText} · w=64
+            </div>
+            <div style="border-top:2px solid #334155; margin-top:0.5rem; padding-top:0.25rem; color:#475569; font-size:0.7rem;">
+                ────────────────────────────
+            </div>
+        </div>
+        <div style="margin-bottom:0.5rem; padding:0.4rem; background: rgba(${state.scheduleMode === 'key' ? '16,185,129' : '56,189,248'}, 0.1); border-radius:0.25rem;">
+            <span style="font-size:0.75rem; color:${state.scheduleMode === 'key' ? '#10b981' : '#38bdf8'};">
+                ${state.scheduleMode === 'key' ? 'Key-Based Schedule' : 'Plaintext Schedule'}
+            </span>
+            ${state.scheduleMode === 'key' ? `<br><span style="font-size:0.7rem; color:#94a3b8;">Key: "${state.keyString}" | Processing: "${state.inputString}"</span>` : ''}
+        </div>
+        <div style="margin-bottom:1rem; padding:0.5rem; background: rgba(56,189,248,0.05); border-radius:0.25rem; border:1px solid #334155;">
+            <span style="font-size:0.75rem; color:#94a3b8; margin-right:0.5rem;">Representation:</span>
+            <button onclick="state.laneDisplayMode='hex'; showDeepDive(${idx});" 
+                    style="padding:0.2rem 0.6rem; margin-right:0.35rem; font-size:0.75rem; 
+                           background:${state.laneDisplayMode === 'hex' ? '#38bdf8' : '#1e293b'}; 
+                           color:${state.laneDisplayMode === 'hex' ? '#0f172a' : '#94a3b8'}; 
+                           border:1px solid #334155; border-radius:0.25rem; cursor:pointer; font-weight:${state.laneDisplayMode === 'hex' ? 'bold' : 'normal'};">
+                HEX
+            </button>
+            <button onclick="state.laneDisplayMode='bits'; showDeepDive(${idx});" 
+                    style="padding:0.2rem 0.6rem; font-size:0.75rem; 
+                           background:${state.laneDisplayMode === 'bits' ? '#38bdf8' : '#1e293b'}; 
+                           color:${state.laneDisplayMode === 'bits' ? '#0f172a' : '#94a3b8'}; 
+                           border:1px solid #334155; border-radius:0.25rem; cursor:pointer; font-weight:${state.laneDisplayMode === 'bits' ? 'bold' : 'normal'};">
+                BITS
+            </button>
+        </div>
+    `;
+
+    // Helper to format lane value with toggle
+    const formatLaneValue = (val, showToggle = true) => {
+        const hexVal = val.toString(16).padStart(16, '0');
+        const binVal = val.toString(2).padStart(64, '0');
+        
+        // Format nibbles (4-bit groups)
+        const nibbles = [];
+        for(let i = 0; i < 64; i += 4) {
+            nibbles.push(binVal.substring(i, i + 4));
+        }
+        // Group into lines of 8 nibbles each with pipe separator
+        const line1 = nibbles.slice(0, 8).join(' ');
+        const line2 = nibbles.slice(8, 16).join(' ');
+        
+        let html = '';
+        
+        if(state.laneDisplayMode === 'hex') {
+            html = `<div style="font-family:'Fira Code',monospace; font-size:0.8rem; color:#e2e8f0; margin-top:0.5rem;"><div style="color:#64748b; font-size:0.7rem; margin-bottom:0.25rem;">HEX (64-bit, little-endian):</div><div style="background:#0f172a; padding:0.5rem; border-radius:0.25rem; letter-spacing:0.05em;">0x${hexVal.match(/.{1,4}/g).join('_')}</div></div>`;
+        } else {
+            html = `<div style="font-family:'Fira Code',monospace; font-size:0.75rem; color:#e2e8f0; margin-top:0.5rem;"><div style="color:#64748b; font-size:0.7rem; margin-bottom:0.25rem;">BITS (4-bit groups, LSB → MSB):</div><div style="background:#0f172a; padding:0.5rem; border-radius:0.25rem; line-height:1.2;">${line1}  ${line2}<br>${nibbles.slice(16, 24).join(' ')}  ${nibbles.slice(24, 32).join(' ')}<br>${nibbles.slice(32, 40).join(' ')}  ${nibbles.slice(40, 48).join(' ')}<br>${nibbles.slice(48, 56).join(' ')}  ${nibbles.slice(56, 64).join(' ')}</div></div>`;
+        }
+        return html;
+    };
+    
+    // Helper to format transformation values with toggle (for Applied Transformation section)
+    const formatTransformValue = (label, val) => {
+        // Mask to 64 bits to handle negative values from bitwise NOT
+        const masked = val & 0xFFFFFFFFFFFFFFFFn;
+        const hexVal = masked.toString(16).padStart(16, '0');
+        const binVal = masked.toString(2).padStart(64, '0');
+        
+        // Format nibbles (4-bit groups)
+        const nibbles = [];
+        for(let i = 0; i < 64; i += 4) {
+            nibbles.push(binVal.substring(i, i + 4));
+        }
+        // Group into lines of 8 nibbles each with pipe separator
+        const line1 = nibbles.slice(0, 8).join(' ');
+        const line2 = nibbles.slice(8, 16).join(' ');
+        
+        let html = `<div style="margin-bottom:1rem;">`;
+        html += `<div style="font-family:'Fira Code',monospace; font-size:0.75rem; color:#fbbf24; margin-bottom:0.5rem;">${label}</div>`;
+        
+        if(state.laneDisplayMode === 'hex') {
+            html += `<div style="font-family:'Fira Code',monospace; font-size:0.8rem; color:#e2e8f0;"><div style="background:#0f172a; padding:0.5rem; border-radius:0.25rem; letter-spacing:0.05em;">0x${hexVal.match(/.{1,4}/g).join('_')}</div></div></div>`;
+        } else {
+            html += `<div style="font-family:'Fira Code',monospace; font-size:0.75rem; color:#e2e8f0;"><div style="background:#0f172a; padding:0.5rem; border-radius:0.25rem; line-height:1.2;">${line1}  ${line2}<br>${nibbles.slice(16, 24).join(' ')}  ${nibbles.slice(24, 32).join(' ')}<br>${nibbles.slice(32, 40).join(' ')}  ${nibbles.slice(40, 48).join(' ')}<br>${nibbles.slice(48, 56).join(' ')}  ${nibbles.slice(56, 64).join(' ')}</div></div></div>`;
+        }
+        return html;
+    };
+    
+    // Helper to format binary block (for operations)
+    const fmtOp = (label, val, isRes=false) => {
+        return `<div style="margin-bottom:12px;">` + 
+               `<div class="op-label">${label}:</div>` + 
+               `<div class="${isRes?'op-res':'op-val'}" style="font-family: 'Fira Code', 'Courier New', monospace; font-size:0.7rem; line-height:1.3;">${toBin(val)}</div>` +
+               `<div style="color:#64748b; margin-top:4px; font-size:0.75rem;">${toHex(val)}</div>` +
+               `</div>`;
+    };
+    
+    // Helper to create chunked math sections
+    const createMathSection = (title, content, color = '#38bdf8') => {
+        return `
+            <div style="background: rgba(${color === '#38bdf8' ? '56,189,248' : color === '#10b981' ? '16,185,129' : color === '#fbbf24' ? '251,191,36' : '239,68,68'}, 0.08); 
+                        border-left: 3px solid ${color}; 
+                        padding: 0.75rem; 
+                        margin-bottom: 0.75rem; 
+                        border-radius: 0.25rem;
+                        width: 100%;
+                        align-self: stretch;
+                        text-align: left;
+                        display: block;">
+                <div style="font-weight: 700; color: ${color}; font-size: 0.8rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: left !important; display: block; white-space: normal;">
+                    ${title}
+                </div>
+                <div style="color: #e2e8f0; font-size: 0.75rem; line-height: 1.6; word-break: break-word; white-space: normal;">
+                    ${content}
+                </div>
+            </div>`;
+    };
+
+    let block = "";
+    
+    const isRate = idx < 17;
+    const isCapacity = idx >= 17;
+    const isOutputDigest = idx < 4;
+
+    if (step.type === 'PADDING') {
+        // Show padded plaintext structure
+        if(currentVal !== 0n) {
+            const paddedBytes = state.paddedPlaintext;
+            const laneBytes = [];
+            let description = '';
+            
+            for(let i = 0; i < 8; i++) {
+                const byteIdx = idx * 8 + i;
+                if(byteIdx < paddedBytes.length) {
+                    laneBytes.push(paddedBytes[byteIdx].toString(16).padStart(2, '0').toUpperCase());
+                } else {
+                    laneBytes.push('--');
+                }
+            }
+            
+            // Determine what this lane contains
+            const encoder = new TextEncoder();
+            const msgBytes = encoder.encode(state.inputString);
+            if(idx * 8 < msgBytes.length) {
+                description = 'Original Message Data';
+            } else if(idx * 8 === msgBytes.length || (idx * 8 < msgBytes.length + 1)) {
+                description = 'Domain Separator (01) + Padding Start (1)';
+            } else if(idx === 16) {
+                description = 'Padding Zeros + Final Bit (1)';
+            } else {
+                description = 'Padding Zeros';
+            }
+            
+            block = createMathSection('Padded Message Bytes', `
+<div style="margin-bottom:0.75rem;">
+  <strong>Lane [${x},${y}]:</strong> Position ${idx} of 17 (Rate)<br>
+  <strong>Byte Range:</strong> ${idx*8} to ${idx*8+7}<br>
+  <strong>Content:</strong> ${description}
+</div>
+<div style="margin-bottom:0.75rem;">
+  <strong>Bytes (Hex):</strong><br>
+  <span style="font-family:'Fira Code',monospace; background:#0f172a; padding:0.25rem 0.5rem; border-radius:0.25rem;">${laneBytes.join(' ')}</span>
+</div>
+<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>
+${formatLaneValue(currentVal)}
+<div style="margin-top:0.75rem; padding:0.5rem; background:rgba(147,197,253,0.1); border-left:3px solid #93c5fd; border-radius:0.25rem; font-size:0.75rem;">
+  <strong>SHA3-256 Padding Rule:</strong> M || 01 || 10*1<br>
+  This pads message length to multiple of rate (1088 bits).
+</div>`, '#93c5fd');
+        } else {
+            block = createMathSection('Empty Lane', `
+<div style="margin-bottom:0.75rem;">
+  <strong>Lane [${x},${y}]:</strong> Position ${idx} of 17 (Rate)
+</div>
+<div style="margin-bottom:0.5rem;">
+  This lane contains no message data.<br>
+  The message fits in fewer than ${idx + 1} lanes.
+</div>
+<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>
+${formatLaneValue(currentVal)}`, '#64748b');
+        }
+    }
+    else if (step.type === 'INIT_STATE') {
+        // Show initial zero state
+        if(isRate) {
+            block = createMathSection('Rate Portion - Initial State', `
+<div style="margin-bottom:0.75rem;">
+  <strong>Lane [${x},${y}]:</strong> Position ${idx} of 17 (Rate)
+</div>
+<div style="margin-bottom:0.75rem;">
+  <strong>Rate Purpose:</strong><br>
+  \u2022 Absorbs input message data<br>
+  \u2022 XORed with padded plaintext<br>
+  \u2022 Provides hash output
+</div>
+<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>
+${formatLaneValue(currentVal)}
+<div style="margin-top:0.5rem; font-size:0.75rem; color:#94a3b8;">
+  The rate provides the interface between the message and the internal state.
+</div>`, '#38bdf8');
+        } else {
+            block = createMathSection('Capacity Portion - Initial State', `
+<div style="margin-bottom:0.75rem;">
+  <strong>Lane [${x},${y}]:</strong> Position ${idx} of 25 (Capacity)
+</div>
+<div style="margin-bottom:0.75rem;">
+  <strong>Capacity Purpose:</strong><br>
+  \u2022 Security parameter (512 bits = 8 lanes)<br>
+  \u2022 Never directly exposed to input/output<br>
+  \u2022 Per NIST FIPS 202 sponge construction
+</div>
+<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>
+${formatLaneValue(currentVal)}
+<div style="margin-top:0.5rem; font-size:0.75rem; color:#94a3b8;">
+  Capacity remains hidden throughout absorption, per SHA3 specification design.
+</div>`, '#10b981');
+        }
+    }
+    else if (step.type === 'ABSORB') {
+        // Show absorption XOR operation
+        if(isRate) {
+            const paddedLane = state.history[0][idx];  // From PADDING step
+            const paddedBytes = state.paddedPlaintext;
+            const laneBytes = [];
+            for(let i = 0; i < 8; i++) {
+                const byteIdx = idx * 8 + i;
+                if(byteIdx < paddedBytes.length) {
+                    laneBytes.push(paddedBytes[byteIdx].toString(16).padStart(2, '0').toUpperCase());
+                } else {
+                    laneBytes.push('00');
+                }
+            }
+            
+            // Convert laneBytes to BigInt for proper display with toggle
+            let paddedLaneValue = 0n;
+            for(let i = 0; i < 8; i++) {
+                const byteIdx = idx * 8 + i;
+                if(byteIdx < paddedBytes.length) {
+                    paddedLaneValue |= BigInt(paddedBytes[byteIdx]) << BigInt(i * 8);
+                }
+            }
+            
+            block = createMathSection('Message Absorption - XOR Operation', `
+<div style="margin-bottom: 0.75rem;">
+  <strong>Lane [${x},${y}]:</strong> Position ${idx} of 17 (Rate)
+</div>
+
+<div style="margin-bottom: 1rem;">
+  <strong>Operation:</strong> Initial State ⊕ Padded Message
+</div>
+
+<div style="background: rgba(100,116,139,0.1); padding: 0.75rem; border-radius: 0.25rem; margin-bottom: 0.75rem;">
+  <div style="font-family: 'Fira Code', monospace; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">Initial State (zeros):</div>
+  ${formatLaneValue(0n)}
+</div>
+
+<div style="background: rgba(56,189,248,0.1); padding: 0.75rem; border-radius: 0.25rem; margin-bottom: 0.75rem;">
+  <div style="font-family: 'Fira Code', monospace; font-size: 0.75rem; color: #38bdf8; margin-bottom: 0.5rem;">Padded Message Bytes:</div>
+  ${formatLaneValue(paddedLaneValue)}
+</div>
+
+<div style="background: rgba(16,185,129,0.1); padding: 0.75rem; border-radius: 0.25rem; margin-bottom: 0.75rem;">
+  <div style="font-family: 'Fira Code', monospace; font-size: 0.75rem; color: #10b981; margin-bottom: 0.5rem;">Result (XOR):</div>
+  <div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>
+  ${formatLaneValue(currentVal)}
+</div>
+
+<div style="margin-top: 0.75rem; padding: 0.5rem; background: rgba(251,191,36,0.1); border-left: 3px solid #fbbf24; border-radius: 0.25rem;">
+  <div style="font-size: 0.75rem; line-height: 1.6;">
+    Since initial state is all zeros:<br>
+    <strong>Result = 0 ⊕ Message = Message</strong>
+  </div>
+</div>
+
+<div style="margin-top: 0.5rem; font-size: 0.75rem; color: #94a3b8;">
+  The message is now absorbed into the rate portion.
+</div>
+`, '#38bdf8');
+        } else {
+            block = createMathSection('Capacity - Unchanged', `
+<div style="margin-bottom:0.75rem;">
+  <strong>Lane [${x},${y}]:</strong> Position ${idx} of 25 (Capacity)
+</div>
+<div style="margin-bottom:0.75rem;">
+  The capacity is NOT modified during absorption.<br>
+  It remains all zeros until the permutation begins.
+</div>
+<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>
+${formatLaneValue(currentVal)}
+<div style="margin-top:0.5rem; font-size:0.75rem; color:#94a3b8;">
+  This separation between rate and capacity is fundamental to the sponge construction.
+</div>`, '#94a3b8');
+        }
+    }
+    else if (step.type === 'OUTPUT') {
+        // Show output extraction
+        if(isOutputDigest) {
+            const byteStart = idx * 8;
+            const byteEnd = byteStart + 7;
+            block = createMathSection('Hash Output - Digest Extraction', `
+<div style="margin-bottom:0.75rem;">
+  <strong>Lane [${x},${y}]:</strong> Bytes ${byteStart}-${byteEnd} of 256-bit Output
+</div>
+<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>
+${formatLaneValue(currentVal)}
+<div style="margin-top:0.75rem; padding:0.5rem; background:rgba(251,191,36,0.1); border-left:3px solid #fbbf24; border-radius:0.25rem;">
+  <div style="font-size:0.75rem; margin-bottom:0.5rem;"><strong>Position in Digest:</strong></div>
+  <div style="font-family:'Fira Code',monospace; font-size:0.7rem; line-height:1.6;">
+    Lane 0: Bytes 0-7   (First 64 bits)<br>
+    Lane 1: Bytes 8-15  (Second 64 bits)<br>
+    Lane 2: Bytes 16-23 (Third 64 bits)<br>
+    Lane 3: Bytes 24-31 (Fourth 64 bits)
+  </div>
+</div>
+<div style="margin-top:0.5rem; font-size:0.75rem; color:#94a3b8;">
+  This is part of your SHA3-256 hash output.<br>
+  Total: 256 bits = 32 bytes = 64 hex characters
+</div>`, '#fbbf24');
+        } else if(isRate) {
+            block = createMathSection('Rate - Not Part of Output', `
+<div style="margin-bottom:0.75rem;">
+  <strong>Lane [${x},${y}]:</strong> Position ${idx} (not extracted)
+</div>
+<div style="margin-bottom:0.75rem;">
+  SHA3-256 extracts only the first 256 bits.<br>
+  This lane is part of the rate but beyond the 256-bit output requirement.
+</div>
+<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>
+${formatLaneValue(currentVal)}
+<div style="margin-top:0.5rem; font-size:0.75rem; color:#94a3b8;">
+  It remains in the internal state but is not included in the hash digest.
+</div>`, '#64748b');
+        } else {
+            block = createMathSection('Capacity - Internal Only', `
+<div style="margin-bottom:0.75rem;">
+  <strong>Lane [${x},${y}]:</strong> Position ${idx} (Capacity)
+</div>
+<div style="margin-bottom:0.75rem;">
+  The capacity NEVER appears in the output.<br>
+  It remains internal to the hash function and is not revealed externally.
+</div>
+<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>
+${formatLaneValue(currentVal)}
+<div style="margin-top:0.5rem; font-size:0.75rem; color:#94a3b8;">
+  This hidden internal state is part of SHA3's sponge construction design per NIST FIPS 202.
+</div>`, '#64748b');
+        }
+    }
+    else if (step.type === 'INIT') {
+        const inputStr = state.inputString || "Chowdhury Hasibur";
+        if(currentVal !== 0n) {
+            // Show bytes for this lane
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(inputStr);
+            const laneBytes = [];
+            for(let i = 0; i < 8; i++) {
+                const byteIdx = idx * 8 + i;
+                if(byteIdx < bytes.length) {
+                    laneBytes.push(bytes[byteIdx].toString(16).padStart(2, '0'));
+                } else if(byteIdx === bytes.length) {
+                    laneBytes.push('06'); // SHA3 padding
+                } else if(byteIdx === 135) {
+                    laneBytes.push('80'); // Block end
+                } else {
+                    laneBytes.push('00');
+                }
+            }
+            block = `
+Input String: "${inputStr}"
+Lane [${x},${y}]: Bytes ${idx*8} to ${idx*8+7}
+Bytes (Hex):  ${laneBytes.join(' ')}
+Packing:      Little Endian Load
+--------------------------------------
+Lane[${x},${y}] = ${toHex(currentVal)}
+Binary:       ${toBin(currentVal)}
+            `;
+        } else {
+            block = `Lane initialized to 0 (padding area).\nCurrent Value: ${toHex(currentVal)}`;
+        }
+    }
+    else if (step.type === 'THETA') {
+        // Reconstruct D for display using the ACTUAL variant
+        const C = new Array(5).fill(0n);
+        let D = 0n;
+        
+        if(step.variant === 0 || step.variant === 1 || step.variant === 2) {
+            // Calculate C in normal space
+            for(let i=0;i<5;i++) C[i] = prevA[i]^prevA[i+5]^prevA[i+10]^prevA[i+15]^prevA[i+20];
+            let l = (x+4)%5, r=(x+1)%5;
+            
+            if(step.variant === 0) {
+                D = C[l] ^ rol64(C[r], 1);
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 0: D[x] = C[x-1] ⊕ ROL(C[x+1], 1)</div>`;
+            }
+            else if(step.variant === 1) {
+                D = rol64(C[l], 1) ^ C[r];
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 1 (Swapped): D[x] = ROL(C[x-1], 1) ⊕ C[x+1]</div>`;
+            }
+            else if(step.variant === 2) {
+                D = rol64(C[l], 3) ^ rol64(C[r], 2);
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 2 (Rot Change): D[x] = ROL(C[x-1], 3) ⊕ ROL(C[x+1], 2)</div>`;
+            }
+        }
+        else if(step.variant === 3) {
+            const C_prime = new Array(5).fill(0n);
+            for(let i=0; i<5; i++) {
+                let x_prime = (i + 2) % 5;
+                C_prime[i] = prevA[x_prime]^prevA[x_prime+5]^prevA[x_prime+10]^prevA[x_prime+15]^prevA[x_prime+20];
+            }
+            let x_rel = (x + 3) % 5;
+            let l = (x_rel+4)%5, r = (x_rel+1)%5;
+            D = C_prime[l] ^ rol64(C_prime[r], 1);
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 3 (Reindex): Column x=${x} maps to x'=${x_rel} in relabeled space</div>`;
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">D'[${x_rel}] = C'[${l}] ⊕ ROL(C'[${r}], 1)</div>`;
+        }
+        else if(step.variant === 4) {
+            for(let i=0;i<5;i++) C[i] = prevA[i]^prevA[i+5]^prevA[i+10]^prevA[i+15]^prevA[i+20];
+            let l = (x+4)%5, r=(x+1)%5;
+            D = C[l] ^ C[x] ^ rol64(C[r], 1);
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 4 (3-Way Mix): D[x] = C[x-1] ⊕ C[x] ⊕ ROL(C[x+1], 1)</div>`;
+        }
+        else if(step.variant === 5) {
+            const R = new Array(5).fill(0n);
+            for(let i=0;i<5;i++) R[i] = prevA[i*5]^prevA[i*5+1]^prevA[i*5+2]^prevA[i*5+3]^prevA[i*5+4];
+            let above = (y+4)%5, below = (y+1)%5;
+            D = R[above] ^ rol64(R[below], 1);
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 5 (Row-wise): D[y] = R[y-1] ⊕ ROL(R[y+1], 1)</div>`;
+        }
+        else if(step.variant === 6) {
+            const Diag = new Array(5).fill(0n);
+            for(let d=0; d<5; d++) {
+                for(let xi=0; xi<5; xi++) {
+                    for(let yi=0; yi<5; yi++) {
+                        if((xi - yi + 5) % 5 === d) {
+                            Diag[d] ^= prevA[xi + 5*yi];
+                        }
+                    }
+                }
+            }
+            let diag = (x - y + 5) % 5;
+            let prev_diag = (diag + 4) % 5;
+            let next_diag = (diag + 1) % 5;
+            D = Diag[prev_diag] ^ rol64(Diag[next_diag], 1);
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 6 (Diagonal): D for diag ${diag} = Diag[${prev_diag}] ⊕ ROL(Diag[${next_diag}], 1)</div>`;
+        }
+
+        html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Formula: A'[x,y] = A[x,y] ⊕ D[x]</div>`;
+        
+        // Chunked display
+        block += createMathSection('1. Lane State (Before)', 
+            `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+            formatLaneValue(prevVal), 
+            '#38bdf8');
+        
+        block += createMathSection('2. Applied Transformation', 
+            `<div style="font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.75rem; color: #fbbf24; margin-bottom: 0.5rem;">D[x] ⊕ A[x,y]</div>` + 
+            formatTransformValue("D[x] (Column Parity Mix)", D), 
+            '#fbbf24');
+        
+        block += createMathSection('3. Lane State (After)', 
+            `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+            formatLaneValue(currentVal), 
+            '#10b981');
+        
+        block += createMathSection('4. Local Cryptographic Effect', 
+            `<p style="margin: 0; line-height: 1.6;">Introduces column-based bit diffusion by XORing each lane with a combination of neighboring columns, modifying dependency structure across the state.</p>`, 
+            '#ef4444');
+    }
+    else if (step.type === 'CHI') {
+        if(step.variant === 0) {
+            let n1_idx = ((x+1)%5) + 5*y;
+            let n2_idx = ((x+2)%5) + 5*y;
+            let v1 = prevA[n1_idx];
+            let v2 = prevA[n2_idx];
+            let term = (~v1) & v2;
+            
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 0 (Standard): A'[x,y] = A[x,y] ⊕ ((~A[x+1,y]) & A[x+2,y])</div>`;
+            
+            block += createMathSection('1. Lane State (Before)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(prevVal) +
+                `<div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px dashed #334155;">` +
+                formatTransformValue("A[x+1,y]", v1) + 
+                formatTransformValue("A[x+2,y]", v2) +
+                `</div>`, 
+                '#38bdf8');
+            
+            block += createMathSection('2. Applied Transformation', 
+                `<div style="font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.75rem; color: #fbbf24; margin-bottom: 0.5rem;">A[x,y] ⊕ ((~A[x+1,y]) & A[x+2,y])</div>` + 
+                formatTransformValue("~A[x+1,y]", ~v1) + 
+                formatTransformValue("(~A[x+1,y]) & A[x+2,y]", term), 
+                '#fbbf24');
+            
+            block += createMathSection('3. Lane State (After)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(currentVal), 
+                '#10b981');
+            
+            block += createMathSection('4. Local Cryptographic Effect', 
+                `<p style="margin: 0; line-height: 1.6;">Introduces non-linearity through bitwise AND operation, complicating linear analysis by creating dependencies that cannot be expressed as simple linear combinations.</p>`, 
+                '#ef4444');
+        }
+        else if(step.variant === 1) {
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 1 (Pre-rotate +1): Rotate row right by 1, apply Chi, rotate back</div>`;
+            
+            block += createMathSection('1. Lane State (Before)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(prevVal), 
+                '#38bdf8');
+            block += createMathSection('2. Applied Transformation', 
+                `<p style="margin: 0;">Row rotation + Chi + inverse rotation</p>`, '#fbbf24');
+            block += createMathSection('3. Lane State (After)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(currentVal), 
+                '#10b981');
+            block += createMathSection('4. Local Cryptographic Effect', 
+                `<p style="margin: 0; line-height: 1.6;">Induces non-linearity with row-level positional mixing.</p>`, '#ef4444');
+        }
+        else if(step.variant === 2) {
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 2 (Pre-rotate +2): Rotate row right by 2, apply Chi, rotate back</div>`;
+            
+            block += createMathSection('1. Lane State (Before)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(prevVal), 
+                '#38bdf8');
+            block += createMathSection('2. Applied Transformation', 
+                `<p style="margin: 0;">Row rotation +2 + Chi + inverse rotation</p>`, '#fbbf24');
+            block += createMathSection('3. Lane State (After)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(currentVal), 
+                '#10b981');
+            block += createMathSection('4. Local Cryptographic Effect', 
+                `<p style="margin: 0; line-height: 1.6;">Induces extended non-linear mixing pattern with increased rotation offset.</p>`, '#ef4444');
+        }
+        else if(step.variant === 3) {
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 3 (Post-rotate +1): Apply Chi, then rotate output row left by 1</div>`;
+            
+            block += createMathSection('1. Lane State (Before)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(prevVal), 
+                '#38bdf8');
+            block += createMathSection('2. Applied Transformation', 
+                `<p style="margin: 0;">Chi + output rotation</p>`, '#fbbf24');
+            block += createMathSection('3. Lane State (After)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(currentVal), 
+                '#10b981');
+            block += createMathSection('4. Local Cryptographic Effect', 
+                `<p style="margin: 0; line-height: 1.6;">Combines non-linearity with output-level positional redistribution.</p>`, '#ef4444');
+        }
+        else if(step.variant === 4) {
+            let n1_idx = ((x+1)%5) + 5*y;
+            let n3_idx = ((x+3)%5) + 5*y;
+            let v1 = prevA[n1_idx];
+            let v3 = prevA[n3_idx];
+            let term = (~v1) & v3;
+            
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 4 (Modified AND): A'[x,y] = A[x,y] ⊕ ((~A[x+1,y]) & A[x+3,y])</div>`;
+            
+            block += createMathSection('1. Lane State (Before)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(prevVal) +
+                `<div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px dashed #334155;">` +
+                formatTransformValue("A[x+1,y]", v1) + 
+                formatTransformValue("A[x+3,y]", v3) +
+                `</div>`, 
+                '#38bdf8');
+            
+            block += createMathSection('2. Applied Transformation', 
+                `<div style="font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.75rem; color: #fbbf24; margin-bottom: 0.5rem;">A[x,y] ⊕ ((~A[x+1,y]) & A[x+3,y])</div>` + 
+                formatTransformValue("~A[x+1,y]", ~v1) + 
+                formatTransformValue("(~A[x+1,y]) & A[x+3,y]", term), 
+                '#fbbf24');
+            
+            block += createMathSection('3. Lane State (After)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(currentVal), 
+                '#10b981');
+            
+            block += createMathSection('4. Local Cryptographic Effect', 
+                `<p style="margin: 0; line-height: 1.6;">Introduces non-linearity with extended neighbor distance (x+3 instead of x+2), creating different mixing patterns.</p>`, 
+                '#ef4444');
+        }
+        else if(step.variant === 5) {
+            let n1_idx = x + 5*((y+1)%5);
+            let n2_idx = x + 5*((y+2)%5);
+            let v1 = prevA[n1_idx];
+            let v2 = prevA[n2_idx];
+            let term = (~v1) & v2;
+            
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 5 (Column-wise): A'[x,y] = A[x,y] ⊕ ((~A[x,y+1]) & A[x,y+2])</div>`;
+            
+            block += createMathSection('1. Lane State (Before)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(prevVal) +
+                `<div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px dashed #334155;">` +
+                formatTransformValue("A[x,y+1]", v1) + 
+                formatTransformValue("A[x,y+2]", v2) +
+                `</div>`, 
+                '#38bdf8');
+            
+            block += createMathSection('2. Applied Transformation', 
+                `<div style="font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.75rem; color: #fbbf24; margin-bottom: 0.5rem;">A[x,y] ⊕ ((~A[x,y+1]) & A[x,y+2])</div>` + 
+                formatTransformValue("~A[x,y+1]", ~v1) + 
+                formatTransformValue("(~A[x,y+1]) & A[x,y+2]", term), 
+                '#fbbf24');
+            
+            block += createMathSection('3. Lane State (After)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(currentVal), 
+                '#10b981');
+            
+            block += createMathSection('4. Local Cryptographic Effect', 
+                `<p style="margin: 0; line-height: 1.6;">Introduces non-linearity along columns instead of rows, providing vertical mixing.</p>`, 
+                '#ef4444');
+        }
+        else if(step.variant === 6) {
+            html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 6 (Double Chi): Apply Chi twice with intermediate rotation</div>`;
+            
+            block += createMathSection('1. Lane State (Before)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(prevVal), 
+                '#38bdf8');
+            
+            block += createMathSection('2. Applied Transformation', 
+                `<p style="margin: 0;">First Chi → Rotate rows +1 → Second Chi → Rotate back -1<br>Complex two-stage non-linear transformation</p>`, 
+                '#fbbf24');
+            
+            block += createMathSection('3. Lane State (After)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(currentVal), 
+                '#10b981');
+            
+            block += createMathSection('4. Local Cryptographic Effect', 
+                `<p style="margin: 0; line-height: 1.6;">Double application of non-linearity with intermediate rotation amplifies mixing complexity.</p>`, 
+                '#ef4444');
+        }
+    }
+    else if (step.type === 'IOTA') {
+        if (currentVal !== prevVal) {
+            let rc = currentVal ^ prevVal;
+            
+            if(step.variant === 0) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 0 (Standard): Inject RC[${step.round}] into A[0,0]</div>`;
+            }
+            else if(step.variant === 1) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 1 (V9-Phi): Inject Phi-based constant into A[0,0]</div>`;
+            }
+            else if(step.variant === 2) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 2 (V10-CA): Inject Rule 30 CA constant into A[0,0]</div>`;
+            }
+            else if(step.variant === 3) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 3 (V5-SHA256): Inject SHA-256 constant into A[0,0]</div>`;
+            }
+            else if(step.variant === 4) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 4 (V6-Pi): Inject Pi constant into A[0,0]</div>`;
+            }
+            else if(step.variant === 5) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 5 (V7-E): Inject e constant into A[0,0]</div>`;
+            }
+            else if(step.variant === 6) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 6 (V11-LFSR64): Inject LFSR-generated constant into A[0,0]</div>`;
+            }
+            
+            block += createMathSection('1. Lane State (Before)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(prevVal), 
+                '#38bdf8');
+            
+            block += createMathSection('2. Applied Transformation', 
+            `<div style="font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.75rem; color: #fbbf24; margin-bottom: 0.5rem;">A[x,y] ⊕ RC[round]</div>` + 
+                formatTransformValue("RC (Round Constant)", rc), 
+                '#fbbf24');
+            
+            block += createMathSection('3. Lane State (After)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(currentVal), 
+                '#10b981');
+            
+            block += createMathSection('4. Local Cryptographic Effect', 
+                `<p style="margin: 0; line-height: 1.6;">Introduces round-specific asymmetry by XORing deterministic constants, altering round dependency structure and distinguishing each iteration.</p>`, 
+                '#ef4444');
+        } else {
+            if(step.variant === 0) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 0: RC injected into A[0,0] only</div>`;
+            }
+            else if(step.variant === 1) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 1 (V9-Phi): RC injected into A[0,0] only (not this lane)</div>`;
+            }
+            else if(step.variant === 2) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 2 (V10-CA): RC injected into A[0,0] only (not this lane)</div>`;
+            }
+            else if(step.variant === 3) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 3 (V5-SHA256): RC injected into A[0,0] only (not this lane)</div>`;
+            }
+            else if(step.variant === 4) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 4 (V6-Pi): RC injected into A[0,0] only (not this lane)</div>`;
+            }
+            else if(step.variant === 5) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 5 (V7-E): RC injected into A[0,0] only (not this lane)</div>`;
+            }
+            else if(step.variant === 6) {
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 6 (V11-LFSR64): RC injected into A[0,0] only (not this lane)</div>`;
+            }
+            
+            block += createMathSection('1. Lane State (Before)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(prevVal), 
+                '#38bdf8');
+            
+            block += createMathSection('2. Applied Transformation', 
+                `<p style="margin: 0; font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.75rem;">No change (RC targets different lane)</p>`, 
+                '#fbbf24');
+            
+            block += createMathSection('3. Lane State (After)', 
+                `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+                formatLaneValue(currentVal), 
+                '#10b981');
+            
+            block += createMathSection('4. Local Cryptographic Effect', 
+                `<p style="margin: 0; line-height: 1.6;">This lane is unaffected by the Iota operation in this round. The round constant is injected into a different position in the state matrix.</p>`, 
+                '#ef4444');
+        }
+    }
+    else if (step.type === 'RHO-PI') {
+        html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Rho-Pi Step: Combined Rotation and Permutation</div>`;
+        
+        block += createMathSection('1. Lane State (Before)', 
+            `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
+            formatLaneValue(prevVal), 
+            '#38bdf8');
+        
+        block += createMathSection('2. Applied Transformation', 
+            `<div style="font-size: 0.75rem; margin-bottom: 0.5rem;">
+                <strong>Rotation:</strong> ROTL(A[${x},${y}], offset)<br>
+                <strong>Permutation:</strong> Position [${x},${y}] → New coordinates<br>
+                <div style="margin-top: 0.5rem; font-family: 'Fira Code', 'Courier New', monospace; color: #fbbf24;">
+                    Rotated lane moved to permuted position
+                </div>
+            </div>`, 
+            '#fbbf24');
+        
+        block += createMathSection('3. Lane State (After)', 
+            `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Written to: A'[x',y'] (after permutation)</div>` +
+            formatLaneValue(currentVal), 
+            '#10b981');
+        
+        block += createMathSection('4. Local Cryptographic Effect', 
+            `<p style="margin: 0; line-height: 1.6;">Introduces intra-lane bit diffusion via rotation and relocates the lane to a non-adjacent position, altering local dependency structure.</p>`, 
+            '#ef4444');
+    }
+
+    html += `<div class="math-box">${block}</div>`;
+    panel.innerHTML = html;
+    
+    // Add event delegation for bit highlighting
+    panel.querySelectorAll('.bit-char').forEach(span => {
+        span.addEventListener('mouseenter', () => {
+            const pos = parseInt(span.getAttribute('data-bit-pos'));
+            highlightBit(pos);
+        });
+        span.addEventListener('mouseleave', () => {
+            clearBitHighlight();
+        });
+    });
+}
+
+/* --- 7. UI UPDATE LOOP --- */
+function updateUI() {
+    // Safety check
+    if(!state.history || state.currentIndex >= state.history.length) {
+        console.error('Invalid state:', state.currentIndex, state.history?.length);
+        return;
+    }
+    
+    const cur = state.history[state.currentIndex];
+    const prev = state.currentIndex > 0 ? state.history[state.currentIndex-1] : null;
+    
+    if(!cur) {
+        console.error('Current state is undefined at index:', state.currentIndex);
+        return;
+    }
+
+    // Helper function to count bit flips (Hamming distance)
+    const hammingDistance = (a, b) => {
+        let xor = a ^ b;
+        let count = 0;
+        while(xor > 0n) {
+            count += Number(xor & 1n);
+            xor >>= 1n;
+        }
+        return count;
+    };
+
+    // Update Lanes based on matrix mode and step type
+    const currentStep = state.sequence[state.currentIndex];
+    const stepType = currentStep?.type;
+    
+    for(let i=0; i<25; i++) {
+        const el = document.getElementById(`lane-${i}`);
+        const hex = document.getElementById(`hex-${i}`);
+        const bin = document.getElementById(`bin-${i}`);
+        
+        const val = cur[i];
+        const prevVal = prev ? prev[i] : 0n;
+        const changed = prev && val !== prevVal;
+        
+        // Special visualization for absorption and output steps
+        const isRate = i < 17;  // Lanes 0-16 are rate
+        const isCapacity = i >= 17;  // Lanes 17-24 are capacity
+        const isOutputDigest = i < 4;  // First 4 lanes are the 256-bit output
+        
+        if(state.matrixMode === 'values') {
+            // Show actual values
+            hex.innerText = toHex(val).substring(0,10) + "..";
+            bin.innerText = toBinShort(val);
+            
+            // Reset classes and background
+            el.classList.remove('changed');
+            el.style.background = '';
+            el.style.opacity = '';
+            
+            // Apply special styling based on step type
+            if(stepType === 'PADDING') {
+                // Show padded message in rate lanes
+                if(isRate && val !== 0n) {
+                    el.style.background = 'rgba(147, 197, 253, 0.2)';  // Light blue for padded data
+                    el.classList.add('changed');
+                } else if(isCapacity) {
+                    el.style.opacity = '0.3';  // Grey out capacity (not used yet)
+                }
+            } else if(stepType === 'INIT_STATE') {
+                // All zeros - subtle indication
+                if(val === 0n) {
+                    el.style.background = 'rgba(100, 116, 139, 0.1)';  // Very subtle grey
+                }
+            } else if(stepType === 'ABSORB') {
+                // Highlight absorbed data in rate
+                if(isRate && val !== 0n) {
+                    el.style.background = 'rgba(56, 189, 248, 0.25)';  // Cyan for absorbed
+                    el.classList.add('changed');
+                } else if(isCapacity) {
+                    el.style.opacity = '0.4';  // Capacity still not touched
+                }
+            } else if(stepType === 'OUTPUT') {
+                // Highlight output digest lanes
+                if(isOutputDigest) {
+                    el.style.background = 'rgba(251, 191, 36, 0.4)';  // Gold for digest output
+                    el.classList.add('changed');
+                } else if(isCapacity) {
+                    el.style.opacity = '0.3';  // Grey out capacity (not output)
+                    el.style.background = 'rgba(100, 116, 139, 0.1)';
+                }
+            } else {
+                // Normal Keccak round visualization
+                if(changed) {
+                    el.classList.add('changed');
+                } else {
+                    el.classList.remove('changed');
+                }
+            }
+        } else if(state.matrixMode === 'delta') {
+            // Show changes (delta mode)
+            if(!prev) {
+                // No previous state - show initialization
+                hex.innerText = "INIT";
+                bin.innerText = toHex(val).substring(0,10) + "..";
+                el.classList.remove('changed');
+                el.style.background = '';
+            } else {
+                const bitFlips = hammingDistance(val, prevVal);
+                const xorDiff = val ^ prevVal;
+                
+                // Display bit flip count and XOR difference
+                hex.innerText = `Δ ${bitFlips} bits`;
+                bin.innerText = bitFlips > 0 ? toHex(xorDiff).substring(0,10) + ".." : "no change";
+                
+                // Background intensity based on Hamming distance
+                // Map 0-64 bits to opacity 0-1
+                const intensity = Math.min(bitFlips / 64, 1);
+                const heatColor = bitFlips > 0 ? 
+                    `rgba(251, 191, 36, ${intensity * 0.6})` : // Gold with opacity
+                    'rgba(100, 116, 139, 0.1)'; // Muted for no change
+                
+                el.style.background = heatColor;
+                
+                if(bitFlips > 0) {
+                    el.classList.add('changed');
+                } else {
+                    el.classList.remove('changed');
+                }
+            }
+        }
+    }
+
+    // Update Status - Mode and Input Information
+    const modeDisp = document.getElementById('dispMode');
+    const plaintextDisp = document.getElementById('dispPlaintext');
+    const keyDisp = document.getElementById('dispKey');
+    const keyRow = document.getElementById('keyRow');
+    
+    if (state.scheduleMode === 'key') {
+        modeDisp.innerText = "Key-Based";
+        modeDisp.style.color = "#10b981";
+        plaintextDisp.innerText = state.inputString.length > 20 ? state.inputString.substring(0, 20) + "..." : state.inputString;
+        keyDisp.innerText = state.keyString.length > 20 ? state.keyString.substring(0, 20) + "..." : state.keyString;
+        keyRow.style.display = "";
+    } else {
+        modeDisp.innerText = "Plaintext";
+        modeDisp.style.color = "#38bdf8";
+        plaintextDisp.innerText = state.inputString.length > 20 ? state.inputString.substring(0, 20) + "..." : state.inputString;
+        keyRow.style.display = "none";
+    }
+
+    // Update Status - Step Information
+    const info = state.sequence[state.currentIndex];
+    
+    // Update round display based on step type
+    let roundDisplay;
+    if(info.round === -1) {
+        roundDisplay = "PRE";
+    } else if(info.round === 24) {
+        roundDisplay = "POST";
+    } else {
+        roundDisplay = info.round;
+    }
+    
+    document.getElementById('dispRound').innerText = roundDisplay;
+    document.getElementById('dispStepType').innerText = info.type;
+    document.getElementById('dispVariant').innerText = info.variant === -1 ? "-" : info.variant;
+    document.getElementById('dispDesc').innerText = info.desc;
+    document.getElementById('dispProgress').innerText = 
+        Math.floor((state.currentIndex / (state.sequence.length-1))*100) + "%";
+
+    // Update Global Context Strip
+    const ctxMode = document.getElementById('ctxMode');
+    const ctxSeed = document.getElementById('ctxSeed');
+    const ctxCurrent = document.getElementById('ctxCurrent');
+    
+    // Mode
+    if (state.scheduleMode === 'key') {
+        ctxMode.innerText = "Key-Based Scheduling";
+    } else {
+        ctxMode.innerText = "Plaintext Scheduling";
+    }
+    
+    // Seed (SHA-256 of input)
+    const seedSource = state.scheduleMode === 'key' ? state.keyString : state.inputString;
+    if (seedSource) {
+        const shortSeed = seedSource.length > 12 ? seedSource.substring(0, 12) + "..." : seedSource;
+        ctxSeed.innerText = `SHA-256("${shortSeed}")`;
+    } else {
+        ctxSeed.innerText = "-";
+    }
+    
+    // Current Step (Round → Step → Variant)
+    let roundText;
+    if(info.round === -1) {
+        roundText = "PRE-ROUND";
+    } else if(info.round === 24) {
+        roundText = "POST-ROUND";
+    } else {
+        roundText = `Round ${info.round}`;
+    }
+    const variantText = info.variant === -1 ? "" : ` → Variant ${info.variant}`;
+    ctxCurrent.innerText = `${roundText} → ${info.type}${variantText}`;
+
+    // Update Hash Digest if at final state
+    if (state.currentIndex === state.sequence.length - 1) {
+        const hashSection = document.getElementById('hashDigestSection');
+        const hashDivider = document.getElementById('hashDivider');
+        const hashHex = document.getElementById('dispHashHex');
+        const hashBin = document.getElementById('dispHashBin');
+        
+        hashSection.style.display = 'block';
+        hashDivider.style.display = 'block';
+        
+        // Extract first 256 bits (4 lanes = 4 * 64 bits) from final state for hash digest
+        const finalState = cur;
+        const hashLanes = [finalState[0], finalState[1], finalState[2], finalState[3]];
+        
+        // Convert to hex string
+        let hexString = '';
+        for (let i = 0; i < 4; i++) {
+            hexString += hashLanes[i].toString(16).padStart(16, '0');
+        }
+        hashHex.innerText = hexString;
+        
+        // Convert to binary string with grouping every 8 bits
+        let binString = '';
+        for (let i = 0; i < 4; i++) {
+            const bin = hashLanes[i].toString(2).padStart(64, '0');
+            // Group by 8 bits for readability
+            const grouped = bin.match(/.{1,8}/g).join(' ');
+            binString += grouped + '\n';
+        }
+        hashBin.innerText = binString.trim();
+    } else {
+        document.getElementById('hashDigestSection').style.display = 'none';
+        document.getElementById('hashDivider').style.display = 'none';
+    }
+
+    // Update Timeline View - Highlight active step
+    if(state.viewMode === 'timeline') {
+        // Remove previous active class
+        document.querySelectorAll('.step-card.active').forEach(card => {
+            card.classList.remove('active');
+        });
+        
+        // Add active class to current step
+        const activeCard = document.querySelector(`[data-step-index="${state.currentIndex}"]`);
+        if(activeCard) {
+            activeCard.classList.add('active');
+            
+            // Auto-scroll to active card with smoother behavior
+            const timelineContainer = document.getElementById('timelineContainer');
+            const cardRect = activeCard.getBoundingClientRect();
+            const containerRect = timelineContainer.getBoundingClientRect();
+            
+            // Scroll if card is not in the middle third of viewport
+            const middleThird = containerRect.width / 3;
+            const cardCenter = cardRect.left + cardRect.width / 2;
+            const containerCenter = containerRect.left + containerRect.width / 2;
+            
+            if(Math.abs(cardCenter - containerCenter) > middleThird) {
+                activeCard.scrollIntoView({ 
+                    behavior: state.isPlaying ? 'smooth' : 'auto', 
+                    block: 'nearest', 
+                    inline: 'center' 
+                });
+            }
+        }
+        
+        // Highlight arrow navigation
+        const currentStep = state.sequence[state.currentIndex];
+        if(currentStep) {
+            // Remove all active arrow classes
+            document.querySelectorAll('.round-arrow').forEach(arrow => {
+                arrow.classList.remove('active');
+            });
+            
+            // Determine which arrow to highlight based on current step
+            if(currentStep.round === -1) {
+                // Pre-round steps (PADDING, INIT_STATE, ABSORB) - highlight arrow FROM this step
+                const arrowFrom = document.querySelector(`.round-arrow[data-arrow-from="${state.currentIndex}"]`);
+                if(arrowFrom) {
+                    arrowFrom.classList.add('active');
+                }
+            } else if(currentStep.round === 24) {
+                // OUTPUT step - highlight arrow TO output
+                const arrowToOutput = document.querySelector(`.round-arrow[data-arrow-to="output"]`);
+                if(arrowToOutput) {
+                    arrowToOutput.classList.add('active');
+                }
+            } else {
+                // Normal Keccak rounds - highlight arrow pointing to current round
+                const currentRoundArrow = document.querySelector(`.round-arrow[data-arrow-to="${currentStep.round}"]`);
+                if(currentRoundArrow) {
+                    currentRoundArrow.classList.add('active');
+                }
+            }
+        }
+    }
+
+    if(selectedLaneIndex !== -1) showDeepDive(selectedLaneIndex);
+}
+
+function getDesc(s, v, r) {
+    const descs = {
+        0: ["Canonical Theta", "Theta V1-Weighted (Branch 12)", "Theta V2-RowCol (Branch 14)", "Theta V3-Rot2", "Theta V4-Rot3", "Theta V5-DualRot", "Theta V6-Enhanced"],
+        1: ["Canonical RhoPi", "RhoPi V1-Fibonacci", "RhoPi V2-Primes", "RhoPi V3-Uniform", "RhoPi V4-Transpose", "RhoPi V5-PosDep", "RhoPi V6-RowMajor"],
+        2: ["Canonical Chi", "Chi V1-Rotated", "Chi V2-RotFurther", "Chi V3-Reverse", "Chi V4-CondRot", "Chi V5-HighNL", "Chi V6-Balanced"],
+        3: ["Canonical Iota", "Iota V1-Primes", "Iota V2-LrgPrimes", "Iota V3-SHA256", "Iota V4-Pi", "Iota V5-E", "Iota V6-MaxHam"]
+    };
+    const desc = descs[s][v] || "Unknown";
+    return `Round ${r}: ${desc}`;
+}
+
+/* --- 8. CONTROL --- */
+function stepForward() {
+    try {
+        if(state.currentIndex >= state.sequence.length - 1) return;
+        if(!state.history[state.currentIndex+1]) {
+            const nextState = executeStep(state.history[state.currentIndex], state.sequence[state.currentIndex+1]);
+            if(!nextState || !Array.isArray(nextState) || nextState.length !== 25) {
+                console.error('Invalid state returned from executeStep:', nextState);
+                console.error('Current index:', state.currentIndex);
+                console.error('Sequence:', state.sequence[state.currentIndex+1]);
+                state.isPlaying = false;
+                clearInterval(state.timer);
+                document.getElementById('btnPlay').innerText = "▶ Play";
+                alert('Error: Invalid state encountered. Playback stopped.');
+                return;
+            }
+            state.history.push(nextState);
+        }
+        state.currentIndex++;
+        updateUI();
+    } catch(error) {
+        console.error('Error in stepForward:', error);
+        console.error('Current index:', state.currentIndex);
+        console.error('Sequence:', state.sequence[state.currentIndex+1]);
+        state.isPlaying = false;
+        clearInterval(state.timer);
+        document.getElementById('btnPlay').innerText = "▶ Play";
+        alert('Error during playback: ' + error.message);
+    }
+}
+function stepBack() {
+    if(state.currentIndex > 0) {
+        state.currentIndex--;
+        updateUI();
+    }
+}
+function togglePlay() {
+    if(state.isPlaying) {
+        state.isPlaying = false;
+        clearInterval(state.timer);
+        document.getElementById('btnPlay').innerText = "▶ Play";
+    } else {
+        state.isPlaying = true;
+        document.getElementById('btnPlay').innerText = "⏸ Pause";
+        state.timer = setInterval(() => {
+            if(state.currentIndex >= state.sequence.length-1) togglePlay();
+            else stepForward();
+        }, state.playbackSpeed);
+    }
+}
+
+function updateSpeed(value) {
+    // Invert slider so right = faster (lower delay), left = slower (higher delay)
+    // slider 50 (left) -> delay 1000ms (slow), slider 1000 (right) -> delay 50ms (fast)
+    const invertedValue = 1050 - parseInt(value);
+    state.playbackSpeed = invertedValue;
+    
+    // Update label
+    // 50ms = 3x, 150ms = 1x, 500ms = 0.3x, 1000ms = 0.15x
+    const speedMultiplier = (150 / state.playbackSpeed).toFixed(2);
+    document.getElementById('speedLabel').innerText = speedMultiplier + 'x';
+    
+    // If currently playing, restart timer with new speed
+    if(state.isPlaying) {
+        clearInterval(state.timer);
+        state.timer = setInterval(() => {
+            if(state.currentIndex >= state.sequence.length-1) togglePlay();
+            else stepForward();
+        }, state.playbackSpeed);
+    }
+}
+
+function setMatrixMode(mode) {
+    state.matrixMode = mode;
+    
+    // Update button styles
+    const btnValues = document.getElementById('btnMatrixValues');
+    const btnDelta = document.getElementById('btnMatrixDelta');
+    
+    if(mode === 'values') {
+        btnValues.style.background = 'var(--accent)';
+        btnValues.style.color = '#000';
+        btnDelta.style.background = 'transparent';
+        btnDelta.style.color = 'var(--text-muted)';
+    } else {
+        btnValues.style.background = 'transparent';
+        btnValues.style.color = 'var(--text-muted)';
+        btnDelta.style.background = 'var(--accent)';
+        btnDelta.style.color = '#000';
+    }
+    
+    // Refresh display
+    updateUI();
+}
+function restart() {
+    // Go back to initial state without resetting input
+    state.isPlaying = false;
+    clearInterval(state.timer);
+    document.getElementById('btnPlay').innerText = "▶ Play";
+    state.currentIndex = 0;
+    
+    // Auto-scroll timeline to start if in timeline view
+    if(state.viewMode === 'timeline') {
+        const timelineContainer = document.getElementById('timelineContainer');
+        timelineContainer.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+    
+    updateUI();
+}
+
+function regenerate() {
+    // Regenerate schedule from current input (works in both views)
+    state.isPlaying = false;
+    clearInterval(state.timer);
+    document.getElementById('btnPlay').innerText = "▶ Play";
+    
+    // Reinitialize everything
+    init();
+    
+    // Switch to timeline (round flow) view by default
+    switchView('timeline');
+    
+    // Start at first step (index 0 = PADDING)
+    // This must happen AFTER switchView to ensure timeline DOM is ready
+    if(state.sequence.length > 0) {
+        state.currentIndex = 0;
+        updateUI();
+        
+        // Scroll timeline to start
+        const timelineContainer = document.getElementById('timelineContainer');
+        if(timelineContainer) {
+            timelineContainer.scrollTo({ left: 0, behavior: 'smooth' });
+        }
+    }
+}
+
+function reset() {
+    // Full reset including input regeneration
+    document.getElementById('inputString').value = "Chowdhury Hasibur";
+    document.getElementById('keyString').value = "";
+    regenerate();
+}
+
+// Bit-position highlighting functions
+function highlightBit(pos) {
+    // Highlight all bits at this position, fade others
+    document.querySelectorAll('.bit-char').forEach(span => {
+        const bitPos = parseInt(span.getAttribute('data-bit-pos'));
+        if (bitPos === pos) {
+            span.classList.add('bit-highlighted');
+            span.classList.remove('bit-faded');
+        } else {
+            span.classList.add('bit-faded');
+            span.classList.remove('bit-highlighted');
+        }
+    });
+}
+
+function clearBitHighlight() {
+    // Remove all highlighting
+    document.querySelectorAll('.bit-char').forEach(span => {
+        span.classList.remove('bit-highlighted', 'bit-faded');
+    });
+}
+
+function switchView(viewMode) {
+    const workspace = document.querySelector('.workspace');
+    const sidebar = workspace.children[0];
+    const centerPanel = workspace.children[1];
+    const detailPanel = workspace.children[2];
+    const matrixContainer = document.querySelector('.matrix-container');
+    const timelineContainer = document.getElementById('timelineContainer');
+    const scheduleContainer = document.getElementById('scheduleContainer');
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Hide all views first
+    sidebar.style.display = 'none';
+    detailPanel.style.display = 'none';
+    matrixContainer.style.display = 'none';
+    timelineContainer.classList.remove('active');
+    scheduleContainer.classList.remove('active');
+    workspace.classList.remove('timeline-mode');
+    
+    if(viewMode === 'matrix') {
+        state.viewMode = 'matrix';
+        sidebar.style.display = 'flex';
+        detailPanel.style.display = 'flex';
+        matrixContainer.style.display = 'flex';
+        document.getElementById('tabMatrix').classList.add('active');
+    } else if(viewMode === 'timeline') {
+        state.viewMode = 'timeline';
+        workspace.classList.add('timeline-mode');
+        timelineContainer.classList.add('active');
+        document.getElementById('tabTimeline').classList.add('active');
+    } else if(viewMode === 'schedule') {
+        state.viewMode = 'schedule';
+        workspace.classList.add('timeline-mode');
+        scheduleContainer.classList.add('active');
+        document.getElementById('tabSchedule').classList.add('active');
+    }
+    
+    updateUI();
+}
+
+function toggleRemainingRounds() {
+    const remainingDiv = document.getElementById('remainingRounds');
+    const btn = document.getElementById('toggleRoundsBtn');
+    
+    if(remainingDiv.style.display === 'none') {
+        remainingDiv.style.display = 'block';
+        btn.innerHTML = '▲ Hide Remaining Rounds (1-23)';
+    } else {
+        remainingDiv.style.display = 'none';
+        btn.innerHTML = '▼ Show Remaining Rounds (1-23)';
+    }
+}
+
+
+</script>
+</body>
+</html>
