@@ -14,7 +14,7 @@ static const int ROTC[24] = {1,3,6,10,15,21,28,36,45,55,2,14,27,41,56,8,25,43,62
 
 // THETA VARIANTS
 
-// Variant 0: Canonical Theta
+// Variant 0: baseline parity
 void theta_v0(u64 A[25]) {
     u64 C[5], D[5];
     
@@ -30,7 +30,7 @@ void theta_v0(u64 A[25]) {
         A[i] ^= D[i%5];
 }
 
-// Variant 1: Theta V8-Weighted
+// Variant 1: staggered rotate mix
 void theta_v1(u64 A[25]) {
     u64 C[5], D[5];
     
@@ -51,7 +51,7 @@ void theta_v1(u64 A[25]) {
         A[i] ^= D[i%5];
 }
 
-// Variant 2: Theta V18-RowCol
+// Variant 2: row-column diffusion
 void theta_v2(u64 A[25]) {
     u64 C[5], R[5];
     
@@ -69,7 +69,7 @@ void theta_v2(u64 A[25]) {
     }
 }
 
-// Variant 3: Theta V1-Rot2
+// Variant 3: double rotate parity
 void theta_v3(u64 A[25]) {
     u64 C[5], D[5];
     
@@ -85,7 +85,7 @@ void theta_v3(u64 A[25]) {
         A[i] ^= D[i%5];
 }
 
-// Variant 4: Theta V2-Rot3
+// Variant 4: triple rotate parity
 void theta_v4(u64 A[25]) {
     u64 C[5], D[5];
     
@@ -101,7 +101,7 @@ void theta_v4(u64 A[25]) {
         A[i] ^= D[i%5];
 }
 
-// Variant 5: Theta V3-DualRot
+// Variant 5: dual-rot edge
 void theta_v5(u64 A[25]) {
     u64 C[5], D[5];
     
@@ -117,7 +117,7 @@ void theta_v5(u64 A[25]) {
         A[i] ^= D[i%5];
 }
 
-// Variant 6: Theta V7-Enhanced
+// Variant 6: enhanced triple mix
 void theta_v6(u64 A[25]) {
     u64 C[5], D[5];
     
@@ -140,7 +140,7 @@ void theta_v6(u64 A[25]) {
 
 // RHO-PI VARIANTS
 
-// Variant 0: Canonical RhoPi
+// Variant 0: standard mapping
 void rhopi_v0(u64 A[25]) {
     u64 B[25];
     u64 t = A[1];
@@ -155,7 +155,7 @@ void rhopi_v0(u64 A[25]) {
     memcpy(A, B, 25 * sizeof(u64));
 }
 
-// Variant 1: RhoPi V1-Fibonacci
+// Variant 1: fibonacci offsets
 void rhopi_v1(u64 A[25]) {
     u64 B[25];
     const int fib_offsets[5][5] = {
@@ -175,7 +175,7 @@ void rhopi_v1(u64 A[25]) {
     memcpy(A, B, 25 * sizeof(u64));
 }
 
-// Variant 2: RhoPi V2-Primes
+// Variant 2: prime offsets
 void rhopi_v2(u64 A[25]) {
     u64 B[25];
     const int prime_offsets[5][5] = {
@@ -195,7 +195,7 @@ void rhopi_v2(u64 A[25]) {
     memcpy(A, B, 25 * sizeof(u64));
 }
 
-// Variant 3: RhoPi V3-Uniform
+// Variant 3: uniform offsets
 void rhopi_v3(u64 A[25]) {
     u64 B[25];
     const int uniform_offsets[5][5] = {
@@ -215,7 +215,7 @@ void rhopi_v3(u64 A[25]) {
     memcpy(A, B, 25 * sizeof(u64));
 }
 
-// Variant 4: RhoPi V5-Transpose
+// Variant 4: transpose mapping
 void rhopi_v4(u64 A[25]) {
     u64 B[25];
     const int rho[5][5] = {
@@ -235,7 +235,7 @@ void rhopi_v4(u64 A[25]) {
     memcpy(A, B, 25 * sizeof(u64));
 }
 
-// Variant 5: RhoPi V8-PosDep
+// Variant 5: position-based mix
 void rhopi_v5(u64 A[25]) {
     u64 B[25];
     
@@ -253,7 +253,7 @@ void rhopi_v5(u64 A[25]) {
     memcpy(A, B, 25 * sizeof(u64));
 }
 
-// Variant 6: RhoPi V9-RowMajor
+// Variant 6: row-major offsets
 void rhopi_v6(u64 A[25]) {
     u64 B[25];
     const int row_major_offsets[5][5] = {
@@ -275,7 +275,7 @@ void rhopi_v6(u64 A[25]) {
 
 // CHI VARIANTS
 
-// Variant 0: Canonical Chi
+// Variant 0: canonical boolean mix
 void chi_v0(u64 A[25]) {
     u64 temp[5];
     
@@ -288,7 +288,7 @@ void chi_v0(u64 A[25]) {
     }
 }
 
-// Variant 1: Chi V1-Rotated
+// Variant 1: shifted neighbor mask
 void chi_v1(u64 A[25]) {
     u64 temp[5];
     
@@ -301,7 +301,7 @@ void chi_v1(u64 A[25]) {
     }
 }
 
-// Variant 2: Chi V2-RotFurther
+// Variant 2: extended neighbor mask
 void chi_v2(u64 A[25]) {
     u64 temp[5];
     
@@ -314,7 +314,7 @@ void chi_v2(u64 A[25]) {
     }
 }
 
-// Variant 3: Chi V3-Reverse
+// Variant 3: reverse neighbor mask
 void chi_v3(u64 A[25]) {
     u64 temp[5];
     
@@ -327,7 +327,7 @@ void chi_v3(u64 A[25]) {
     }
 }
 
-// Variant 4: Chi V12-CondRot
+// Variant 4: conditional rotate blend
 void chi_v4(u64 A[25]) {
     u64 temp[5];
     
@@ -345,7 +345,7 @@ void chi_v4(u64 A[25]) {
     }
 }
 
-// Variant 5: Chi V7-HighNL
+// Variant 5: high nonlinearity
 void chi_v5(u64 A[25]) {
     u64 temp[5];
     
@@ -362,7 +362,7 @@ void chi_v5(u64 A[25]) {
     }
 }
 
-// Variant 6: Chi V8-Balanced
+// Variant 6: balanced majority rotate
 void chi_v6(u64 A[25]) {
     u64 temp[5];
     
@@ -382,7 +382,7 @@ void chi_v6(u64 A[25]) {
 
 // IOTA VARIANTS
 
-// Variant 0: Canonical Iota
+// Variant 0: standard RC set
 void iota_v0(u64 A[25], int round) {
     const u64 canonical_rc[24] = {
         0x0000000000000001ULL, 0x0000000000008082ULL, 0x800000000000808aULL,
@@ -398,7 +398,7 @@ void iota_v0(u64 A[25], int round) {
     A[0] ^= canonical_rc[round];
 }
 
-// Variant 1: Iota V9-Phi
+// Variant 1: phi based constants
 void iota_v1(u64 A[25], int round) {
     const u64 iota_phi_constants[24] = {
         0x06BC5545CFC8F594ULL,
@@ -430,7 +430,7 @@ void iota_v1(u64 A[25], int round) {
     A[0] ^= iota_phi_constants[round];
 }
 
-// Variant 2: Iota V10-CA
+// Variant 2: CA derived constants
 void iota_v2(u64 A[25], int round) {
     const u64 ca_constants[24] = {
         0xdcc593ae756195abULL, 0xf0f15c12c71b6808ULL, 0xfba71d7064679f81ULL,
@@ -445,7 +445,7 @@ void iota_v2(u64 A[25], int round) {
     A[0] ^= ca_constants[round];
 }
 
-// Variant 3: Iota V5-SHA256
+// Variant 3: sha256 style constants
 void iota_v3(u64 A[25], int round) {
     const u64 sha256_style_constants[24] = {
         0x428a2f98d728ae22ULL, 0x7137449123ef65cdULL, 0xb5c0fbcfec4d3b2fULL,
@@ -461,7 +461,7 @@ void iota_v3(u64 A[25], int round) {
     A[0] ^= sha256_style_constants[round];
 }
 
-// Variant 4: Iota V6-Pi
+// Variant 4: pi derived constants
 void iota_v4(u64 A[25], int round) {
     const u64 pi_constants[24] = {
         0x243f6a8885a308d3ULL, 0x13198a2e03707344ULL, 0xa4093822299f31d0ULL,
@@ -477,7 +477,7 @@ void iota_v4(u64 A[25], int round) {
     A[0] ^= pi_constants[round];
 }
 
-// Variant 5: Iota V7-E
+// Variant 5: e derived constants
 void iota_v5(u64 A[25], int round) {
     const u64 e_constants[24] = {
         0x2b7e151628aed2a6ULL, 0xabf7158809cf4f3cULL, 0x762e7160f38b4da5ULL,
@@ -493,7 +493,7 @@ void iota_v5(u64 A[25], int round) {
     A[0] ^= e_constants[round];
 }
 
-// Variant 6: Iota V11-LFSR64
+// Variant 6: lfsr driven constants
 void iota_v6(u64 A[25], int round) {
     u64 lfsr = 0x243f6a8885a308d3ULL; 
     
@@ -507,4 +507,3 @@ void iota_v6(u64 A[25], int round) {
     
     A[0] ^= lfsr;
 }
-
