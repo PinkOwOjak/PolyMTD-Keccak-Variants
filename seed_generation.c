@@ -1,14 +1,8 @@
-// Seed Generation Module for Keccak Cryptanalysis
-// Implements SHA-256, AES-256-CTR PRNG, and schedule generation matching HTML visualizer
-
 #include "seed_generation.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// ============================================================================
 // SHA-256 IMPLEMENTATION
-// ============================================================================
 
 // SHA-256 constants
 static const uint32_t K[64] = {
@@ -38,17 +32,19 @@ void sha256(const uint8_t *input, size_t len, uint8_t output[32]) {
     
     // Calculate padding
     uint64_t bit_len = len * 8;
-    size_t pad_len = ((len + 8) % 64 < 56) ? (56 - (len + 8) % 64) : (120 - (len + 8) % 64);
-    size_t total_len = len + 1 + pad_len + 8;
+    // Need: message + 0x80 + padding_zeros such that total ≡ 56 (mod 64), then + 8 bytes for length
+    size_t total_len = len + 1; // message + 0x80
+    while ((total_len % 64) != 56) total_len++; // add zeros to reach 56 mod 64
+    total_len += 8; // add 8-byte length field
     
     uint8_t *padded = (uint8_t*)malloc(total_len);
     memcpy(padded, input, len);
     padded[len] = 0x80;
-    memset(padded + len + 1, 0, pad_len);
+    memset(padded + len + 1, 0, total_len - len - 9); // zeros
     
     // Append length in big-endian
     for (int i = 0; i < 8; i++) {
-        padded[total_len - 1 - i] = (bit_len >> (i * 8)) & 0xff;
+        padded[total_len - 8 + i] = (bit_len >> (56 - i * 8)) & 0xff;
     }
     
     // Process blocks
@@ -97,10 +93,7 @@ void sha256(const uint8_t *input, size_t len, uint8_t output[32]) {
 void sha256_string(const char *input, uint8_t output[32]) {
     sha256((const uint8_t*)input, strlen(input), output);
 }
-
-// ============================================================================
 // AES-256-CTR PRNG IMPLEMENTATION
-// ============================================================================
 
 // AES S-box
 static const uint8_t AES_SBOX[256] = {
@@ -246,9 +239,7 @@ uint64_t aes_ctr_next(AES_CTR_PRNG *prng) {
     return result;
 }
 
-// ============================================================================
 // SHA3-256 PADDING
-// ============================================================================
 
 size_t apply_sha3_padding(const uint8_t *message, size_t msg_len, 
                           uint8_t *padded, size_t max_padded_len) {
@@ -275,10 +266,7 @@ size_t apply_sha3_padding(const uint8_t *message, size_t msg_len,
     
     return padded_len;
 }
-
-// ============================================================================
 // SCHEDULE GENERATION
-// ============================================================================
 
 void generate_schedule_internal(const uint8_t seed[32], KeccakSchedule *schedule) {
     AES_CTR_PRNG prng;
@@ -369,9 +357,7 @@ void generate_schedule_from_key(const char *key, KeccakSchedule *schedule) {
     free(combined);
 }
 
-// ============================================================================
 // STATE INITIALIZATION
-// ============================================================================
 
 // Initialize Keccak state from binary message with explicit length
 void init_state_from_message(const uint8_t *message, size_t msg_len, u64 state[25]) {
@@ -408,18 +394,16 @@ void init_state_from_plaintext(const char *plaintext, u64 state[25]) {
     init_state_from_message((const uint8_t*)plaintext, msg_len, state);
 }
 
-// ============================================================================
 // PRINTING FUNCTIONS
-// ============================================================================
 
 void print_round_schedule(int round, const RoundSchedule *rs) {
-    const char *step_names[] = {"θ(THETA)", "ρπ(RHOPI)", "χ(CHI)", "ι(IOTA)"};
+    const char *step_names[] = {"THETA", "RHOPI", "CHI", "IOTA"};
     
     printf("Round %2d: ", round);
     for (int i = 0; i < 4; i++) {
         int step = rs->step_order[i];
         printf("%s-V%d", step_names[step], rs->variants[i]);
-        if (i < 3) printf(" → ");
+        if (i < 3) printf(" -> ");
     }
     printf("\n");
 }
