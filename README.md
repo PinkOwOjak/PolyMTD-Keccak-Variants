@@ -91,46 +91,46 @@ The program will execute the Keccak-f[1600] permutation using the polymorphic va
 ### Theta Variants
 | Variant | Description |
 |---------|-------------|
-| V0 | Canonical theta (standard Keccak) |
-| V1 | V8-Weighted (rotation-weighted column parity) |
-| V2 | V18-RowCol (row and column mixing) |
-| V3 | V1-Rot2 (rotation constant = 2) |
-| V4 | V2-Rot3 (rotation constant = 3) |
-| V5 | V19-ColShift (column shift mixing) |
-| V6 | V20-DualRot (dual rotation constants) |
+| V0 | Canonical theta (standard parity diffusion) |
+| V1 | Rotation-weighted column parity |
+| V2 | Row and column mixing |
+| V3 | Rotation constant equals 2 |
+| V4 | Rotation constant equals 3 |
+| V5 | Column shift mixing |
+| V6 | Dual rotation constants |
 
 ### Rho-Pi Variants
 | Variant | Description |
 |---------|-------------|
-| V0 | Canonical rho-pi (standard permutation + rotation) |
-| V1 | V9-ShiftedRot (shifted rotation offsets) |
-| V2 | V10-ReversePi (reversed permutation order) |
-| V3 | V11-DoubleRot (doubled rotation constants) |
-| V4 | V12-ModRot (modular rotation) |
-| V5 | V13-CustomPi (custom permutation pattern) |
-| V6 | V14-HalfRot (halved rotation constants) |
+| V0 | Canonical permutation and rotation |
+| V1 | Shifted rotation offsets |
+| V2 | Reversed permutation order |
+| V3 | Doubled rotation constants |
+| V4 | Modular rotation mapping |
+| V5 | Custom permutation pattern |
+| V6 | Halved rotation constants |
 
 ### Chi Variants
 | Variant | Description |
 |---------|-------------|
-| V0 | Canonical chi (standard nonlinear step) |
-| V1 | V15-InvChi (inverted chi logic) |
-| V2 | V3-DiagChi (diagonal shift) |
-| V3 | V16-RotChi (rotated chi positions) |
-| V4 | V4-ReverseChi (reverse direction chi) |
-| V5 | V5-OffsetChi (offset positions) |
-| V6 | V6-MixChi (mixed direction chi) |
+| V0 | Canonical nonlinear step |
+| V1 | Inverted chi logic |
+| V2 | Diagonal shift interaction |
+| V3 | Rotated chi positions |
+| V4 | Reverse direction chi |
+| V5 | Offset chi positions |
+| V6 | Mixed direction chi |
 
 ### Iota Variants
 | Variant | Description |
 |---------|-------------|
-| V0 | Canonical iota (standard round constants) |
-| V1 | V17-CustomRC (custom round constants) |
-| V2 | V21-RotRC (rotated round constants) |
-| V3 | V22-InvRC (inverted round constants) |
-| V4 | V23-ShiftRC (shifted round constants) |
-| V5 | V24-XorRC (XOR-modified round constants) |
-| V6 | V25-ModRC (modular round constants) |
+| V0 | Canonical round constants |
+| V1 | Custom round constants |
+| V2 | Rotated round constants |
+| V3 | Inverted round constants |
+| V4 | Shifted round constants |
+| V5 | XOR-modified round constants |
+| V6 | Modular round constants |
 
 ## 🔐 Security Features
 
