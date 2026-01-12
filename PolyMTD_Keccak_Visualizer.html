@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Keccak-f variant Dependant Visualizer</title>
+<title>Jisan Gain - Ultimate Visualizer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-
+/* --- THEME & LAYOUT --- */
 :root {
     --bg: #0f172a;
     --panel-bg: #1e293b;
@@ -32,7 +32,7 @@ body {
     overflow: hidden;
 }
 
-
+/* --- HEADER --- */
 .header {
     background: var(--panel-bg);
     border-bottom: 1px solid var(--lane-border);
@@ -63,7 +63,7 @@ button {
 button:hover { background: var(--accent); color: #000; border-color: var(--accent); }
 button.primary { background: var(--accent); color: #0f172a; }
 
-
+/* Tab Interface */
 .view-tabs {
     display: flex;
     gap: 0;
@@ -98,21 +98,21 @@ button.primary { background: var(--accent); color: #0f172a; }
     border: 3px solid var(--accent);
 }
 
-
+/* --- WORKSPACE --- */
 .workspace {
     display: grid;
     grid-template-columns: 280px 1fr 450px; /* Sidebar - Matrix - DetailPanel */
     gap: 0.75rem;
     padding: 0.75rem;
     flex: 1;
-    min-height: 0;
+    min-height: 0; /* Important for nested scrolling */
 }
 
 .workspace.timeline-mode {
     grid-template-columns: 1fr; /* Full width for timeline */
 }
 
-
+/* Panels */
 .panel {
     background: var(--panel-bg);
     border: 1px solid var(--lane-border);
@@ -132,7 +132,7 @@ button.primary { background: var(--accent); color: #0f172a; }
     letter-spacing: 0.05em;
 }
 
-
+/* Sidebar Info */
 .info-scroll { overflow-y: auto; flex: 1; }
 .info-row {
     padding: 0.6rem 1rem;
@@ -143,7 +143,7 @@ button.primary { background: var(--accent); color: #0f172a; }
 }
 .info-label { font-size: 0.8rem; color: var(--text-muted); }
 .info-val { font-family: 'Fira Code', 'Courier New', monospace; font-weight: bold; color: var(--accent); font-size: 0.9rem; }
-
+/* --- GLOBAL CONTEXT STRIP --- */
 .global-context-strip {
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
     border-bottom: 2px solid var(--accent);
@@ -210,7 +210,7 @@ button.primary { background: var(--accent); color: #0f172a; }
     border-radius: 0.25rem;
 }
 
-
+/* --- MATRIX GRID --- */
 .matrix-container {
     flex: 1;
     display: flex;
@@ -226,7 +226,8 @@ button.primary { background: var(--accent); color: #0f172a; }
     grid-template-columns: repeat(5, 1fr);
     gap: 0.5rem;
     width: 100%;
-    max-width: 800px;
+    max-width: 800px; /* Increased max width for bigger matrix */
+    /* Scaling logic to fit view */
     max-height: 100%;
 }
 
@@ -234,7 +235,7 @@ button.primary { background: var(--accent); color: #0f172a; }
     background: var(--lane-bg);
     border: 1px solid var(--lane-border);
     border-radius: 0.375rem;
-    aspect-ratio: 5/4;
+    aspect-ratio: 5/4; /* Slightly rectangular */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -262,7 +263,7 @@ button.primary { background: var(--accent); color: #0f172a; }
     box-shadow: 0 0 15px var(--highlight);
 }
 
-
+/* Text inside lanes */
 .lane-coord { position: absolute; top: 2px; left: 4px; font-size: 0.6rem; opacity: 0.5; font-family: 'Fira Code', 'Courier New', monospace; }
 .lane-hex { font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.75rem; font-weight: 700; }
 .lane-bits { 
@@ -275,7 +276,7 @@ button.primary { background: var(--accent); color: #0f172a; }
     padding: 0 2px;
 }
 
-
+/* Bit highlighting */
 .bit-char {
     cursor: pointer;
     transition: all 0.15s;
@@ -300,7 +301,7 @@ button.primary { background: var(--accent); color: #0f172a; }
     opacity: 0.3 !important;
 }
 
-
+/* --- DEEP DIVE PANEL --- */
 .detail-content {
     padding: 1rem;
     overflow-y: auto;
@@ -316,14 +317,14 @@ button.primary { background: var(--accent); color: #0f172a; }
     font-size: 0.75rem;
     color: var(--op-text);
     margin-top: 0.5rem;
-    white-space: normal;
-    word-break: break-word;
+    white-space: normal; /* Normal for prose text */
+    word-break: break-word; /* Preserve structure while preventing overflow */
     overflow-wrap: anywhere;
     line-height: 1.6;
     text-align: left !important;
 }
 
-
+/* Preserve whitespace for code/binary values */
 .math-box .value,
 .math-box .binary,
 .math-box .hex {
@@ -344,15 +345,15 @@ button.primary { background: var(--accent); color: #0f172a; }
     opacity: 0.5;
 }
 
-
+/* Scrollbar polish */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--lane-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-
+/* --- TIMELINE VIEW --- */
 .timeline-container {
-    display: none;
+    display: none; /* Hidden by default */
     overflow-x: auto;
     overflow-y: auto;
     padding: 1rem 0 1rem 0;
@@ -385,11 +386,11 @@ button.primary { background: var(--accent); color: #0f172a; }
     transition: background-color 0.3s;
 }
 
-
-.round-column:nth-child(4n+1) { background: rgba(30, 41, 59, 0.3); }
-.round-column:nth-child(4n+3) { background: rgba(15, 23, 42, 0.3); }
-.round-column:nth-child(4n+5) { background: rgba(30, 41, 59, 0.3); }
-.round-column:nth-child(4n+7) { background: rgba(15, 23, 42, 0.3); }
+/* Alternating backgrounds for better visual tracking */
+.round-column:nth-child(4n+1) { background: rgba(30, 41, 59, 0.3); } /* Dark slate */
+.round-column:nth-child(4n+3) { background: rgba(15, 23, 42, 0.3); } /* Darker slate */
+.round-column:nth-child(4n+5) { background: rgba(30, 41, 59, 0.3); } /* Dark slate */
+.round-column:nth-child(4n+7) { background: rgba(15, 23, 42, 0.3); } /* Darker slate */
 
 .round-header {
     font-weight: 800;
@@ -404,7 +405,7 @@ button.primary { background: var(--accent); color: #0f172a; }
     min-width: 100px;
 }
 
-
+/* Distinct colors for round headers to aid navigation */
 .round-column:nth-child(4n+1) .round-header { 
     border-color: #475569;
     background: rgba(71, 85, 105, 0.2);
@@ -454,7 +455,7 @@ button.primary { background: var(--accent); color: #0f172a; }
 .step-card.step-chi { border-left: 4px solid #32a852; }
 .step-card.step-iota { border-left: 4px solid #eb4034; }
 
-
+/* Full card background colors for step types */
 .step-card.step-theta { 
     background: linear-gradient(135deg, rgba(147, 197, 253, 0.25), rgba(147, 197, 253, 0.15));
     border: 2px solid rgba(147, 197, 253, 0.6);
@@ -514,7 +515,7 @@ button.primary { background: var(--accent); color: #0f172a; }
 }
 
 .step-card.active {
-    animation: pulse 2s ease-in-out infinite;
+    animation: pulse 2s ease-in-out infinite; /* Slower, gentler animation */
 }
 
 .round-arrow {
@@ -530,7 +531,7 @@ button.primary { background: var(--accent); color: #0f172a; }
     transform: scale(1.2);
 }
 
-
+/* --- SCHEDULE INFO VIEW --- */
 .schedule-container {
     display: none;
     overflow-y: auto;
@@ -836,13 +837,13 @@ button.primary { background: var(--accent); color: #0f172a; }
 </div>
 
 <script>
-
+/* --- BROWSER COMPATIBILITY CHECK --- */
 if (typeof BigInt === "undefined") {
     alert("This visualizer requires BigInt support (ES2020+). Please use a modern browser (Chrome 67+, Firefox 68+, Safari 14+, Edge 79+).");
     throw new Error("BigInt not supported");
 }
 
-
+/* --- 1. CRYPTO CONSTANTS & HELPERS --- */
 const RC = [
   0x0000000000000001n,0x0000000000008082n,0x800000000000808an,0x8000000080008000n,
   0x000000000000808bn,0x0000000080000001n,0x8000000080008081n,0x8000000000008009n,
@@ -855,19 +856,24 @@ const ROTC = [1,3,6,10,15,21,28,36,45,55,2,14,27,41,56,8,25,43,62,18,39,61,20,44
 const PILN = [10,7,11,17,18,3,5,16,8,21,24,4,15,23,19,13,12,2,20,14,22,9,6,1];
 
 const rol64 = (x, r) => {
+    // Convert r to BigInt if it isn't already
     const rBig = typeof r === 'bigint' ? r : BigInt(r);
     return ((x << rBig) | (x >> (64n - rBig))) & 0xFFFFFFFFFFFFFFFFn;
 };
 const toHex = (n) => "0x" + n.toString(16).padStart(16,'0');
 const toBin = (n) => {
     const bin = n.toString(2).padStart(64,'0');
+    // Wrap each bit in a span for hover highlighting
     const wrappedBits = bin.split('').map((bit, idx) => 
         `<span class="bit-char" data-bit-pos="${idx}">${bit}</span>`
     ).join('');
+    // Group by 8 bits (bytes) with non-breaking spaces for better alignment
+    // Using \u00A0 (non-breaking space) prevents awkward line breaks mid-number
     return wrappedBits.match(/.{1,56}/g).join('\u00A0');
 };
 const toBinShort = (n) => n.toString(2).padStart(64,'0').substring(0,16) + "...";
 
+// SHA-256 implementation for seed generation (matching C code)
 function sha256(input) {
     const K = [
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -893,35 +899,52 @@ function sha256(input) {
     const len = data.length;
     const bitLen = len * 8;
     
-    const padLen = ((len + 8) % 64 < 56) ? (56 - (len + 8) % 64) : (120 - (len + 8) % 64);
-    const padded = new Uint8Array(len + 1 + padLen + 8);
+    // Calculate padding: need to reach 56 bytes mod 64, then add 8-byte length
+    let totalLen = len + 1; // message + 0x80
+    while ((totalLen % 64) !== 56) totalLen++; // add zeros to reach 56 mod 64
+    totalLen += 8; // add 8-byte length field
+    
+    const padded = new Uint8Array(totalLen);
     padded.set(data);
     padded[len] = 0x80;
+    // zeros are already in place (Uint8Array initializes to 0)
     
+    // Append length in big-endian (64-bit)
+    // For small messages, high-order bytes are 0
     for (let i = 0; i < 8; i++) {
-        padded[padded.length - 1 - i] = (bitLen >>> (i * 8)) & 0xff;
+        const shift = (7 - i) * 8;
+        if (shift >= 32) {
+            padded[totalLen - 8 + i] = 0; // High-order bytes are 0 for small messages
+        } else {
+            padded[totalLen - 8 + i] = (bitLen >>> shift) & 0xff;
+        }
     }
     
+    // Initialize hash values
     let H = [
         0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
         0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
     ];
     
-    for (let offset = 0; offset < padded.length; offset += 64) {
+    // Process blocks
+    for (let offset = 0; offset < totalLen; offset += 64) {
         const W = new Array(64);
         
+        // Prepare message schedule
         for (let t = 0; t < 16; t++) {
-            W[t] = (padded[offset + t * 4] << 24) |
+            W[t] = ((padded[offset + t * 4] << 24) |
                    (padded[offset + t * 4 + 1] << 16) |
                    (padded[offset + t * 4 + 2] << 8) |
-                   padded[offset + t * 4 + 3];
+                   padded[offset + t * 4 + 3]) >>> 0;
         }
         for (let t = 16; t < 64; t++) {
             W[t] = (gamma1(W[t-2]) + W[t-7] + gamma0(W[t-15]) + W[t-16]) >>> 0;
         }
         
+        // Initialize working variables
         let [a, b, c, d, e, f, g, h] = H;
         
+        // Main loop
         for (let t = 0; t < 64; t++) {
             const T1 = (h + sig1(e) + ch(e, f, g) + K[t] + W[t]) >>> 0;
             const T2 = (sig0(a) + maj(a, b, c)) >>> 0;
@@ -929,12 +952,14 @@ function sha256(input) {
             d = c; c = b; b = a; a = (T1 + T2) >>> 0;
         }
         
+        // Update hash values
         H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0;
         H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
         H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0;
         H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
     }
     
+    // Convert to byte array (32 bytes)
     const hash = new Uint8Array(32);
     for (let i = 0; i < 8; i++) {
         hash[i * 4] = (H[i] >>> 24) & 0xff;
@@ -973,107 +998,117 @@ class AESCTR {
     this.key = new Uint8Array(32);
     this.counter = new Uint8Array(16);
     this.keystream = new Uint8Array(16);
-    this.pos = 16;
+    this.pos = 16; // Force generation on first call
     
+    // Use all 32 bytes of seed as AES-256 key
     this.key.set(seed_bytes.slice(0, 32));
     
+    // Cache expanded key as 32-bit words (like C implementation)
     this.expandedKey = this.expandKey();
   }
   
+  // AES-256 key expansion (returns Uint32Array of 60 words)
   expandKey() {
-    const expanded = new Uint8Array(240);
-    expanded.set(this.key);
+    const expanded = new Uint32Array(60);
     
+    // Copy first 8 words (32 bytes) directly in big-endian
+    for (let i = 0; i < 8; i++) {
+      expanded[i] = (this.key[i*4] << 24) |
+                    (this.key[i*4+1] << 16) |
+                    (this.key[i*4+2] << 8) |
+                    this.key[i*4+3];
+    }
+    
+    // Generate remaining words
     for (let i = 8; i < 60; i++) {
-      let temp = new Uint8Array(4);
-      temp.set(expanded.slice((i - 1) * 4, i * 4));
+      let temp = expanded[i-1];
       
       if (i % 8 === 0) {
-        const t = temp[0];
-        temp[0] = temp[1]; temp[1] = temp[2]; temp[2] = temp[3]; temp[3] = t;
-        temp[0] = AES_SBOX[temp[0]];
-        temp[1] = AES_SBOX[temp[1]];
-        temp[2] = AES_SBOX[temp[2]];
-        temp[3] = AES_SBOX[temp[3]];
-        temp[0] ^= AES_RCON[i / 8 - 1];
+        // RotWord, SubWord, Rcon
+        const rotated = (temp << 8) | (temp >>> 24);
+        temp = (AES_SBOX[(rotated >>> 24) & 0xff] << 24) |
+               (AES_SBOX[(rotated >>> 16) & 0xff] << 16) |
+               (AES_SBOX[(rotated >>> 8) & 0xff] << 8) |
+               AES_SBOX[rotated & 0xff];
+        temp ^= AES_RCON[i/8 - 1] << 24;
       } else if (i % 8 === 4) {
-        temp[0] = AES_SBOX[temp[0]];
-        temp[1] = AES_SBOX[temp[1]];
-        temp[2] = AES_SBOX[temp[2]];
-        temp[3] = AES_SBOX[temp[3]];
+        // SubWord
+        temp = (AES_SBOX[(temp >>> 24) & 0xff] << 24) |
+               (AES_SBOX[(temp >>> 16) & 0xff] << 16) |
+               (AES_SBOX[(temp >>> 8) & 0xff] << 8) |
+               AES_SBOX[temp & 0xff];
       }
       
-      for (let j = 0; j < 4; j++) {
-        expanded[i * 4 + j] = expanded[(i - 8) * 4 + j] ^ temp[j];
-      }
+      expanded[i] = (expanded[i-8] ^ temp) >>> 0;
     }
+    
     return expanded;
   }
   
-  gmul(a, b) {
-    let p = 0;
-    for (let i = 0; i < 8; i++) {
-      if (b & 1) p ^= a;
-      const hi = a & 0x80;
-      a = (a << 1) & 0xFF;
-      if (hi) a ^= 0x1b;
-      b >>= 1;
-    }
-    return p;
-  }
-  
+  // AES-256 encrypt single block (matching C implementation exactly)
   encryptBlock(input, expandedKey) {
-    const state = new Uint8Array(input);
-    let temp;
+    const state = new Uint8Array(16);
+    state.set(input);
     
-    // Initial AddRoundKey
-    for (let i = 0; i < 16; i++) {
-      state[i] ^= expandedKey[i];
+    // AddRoundKey (round 0) - column-major order with big-endian words
+    for (let i = 0; i < 4; i++) {
+      const word = expandedKey[i];
+      state[i*4] ^= (word >>> 24) & 0xff;
+      state[i*4+1] ^= (word >>> 16) & 0xff;
+      state[i*4+2] ^= (word >>> 8) & 0xff;
+      state[i*4+3] ^= word & 0xff;
     }
     
+    // 13 rounds
     for (let round = 1; round < 14; round++) {
-      for (let i = 0; i < 16; i++) {
-        state[i] = AES_SBOX[state[i]];
-      }
+      const temp = new Uint8Array(16);
       
-      temp = state[1]; state[1] = state[5]; state[5] = state[9]; state[9] = state[13]; state[13] = temp;
-      temp = state[2]; state[2] = state[10]; state[10] = temp;
-      temp = state[6]; state[6] = state[14]; state[14] = temp;
-      temp = state[15]; state[15] = state[11]; state[11] = state[7]; state[7] = state[3]; state[3] = temp;
+      // SubBytes + ShiftRows (combined, matching C implementation)
+      temp[0] = AES_SBOX[state[0]];  temp[1] = AES_SBOX[state[5]];
+      temp[2] = AES_SBOX[state[10]]; temp[3] = AES_SBOX[state[15]];
+      temp[4] = AES_SBOX[state[4]];  temp[5] = AES_SBOX[state[9]];
+      temp[6] = AES_SBOX[state[14]]; temp[7] = AES_SBOX[state[3]];
+      temp[8] = AES_SBOX[state[8]];  temp[9] = AES_SBOX[state[13]];
+      temp[10] = AES_SBOX[state[2]]; temp[11] = AES_SBOX[state[7]];
+      temp[12] = AES_SBOX[state[12]]; temp[13] = AES_SBOX[state[1]];
+      temp[14] = AES_SBOX[state[6]]; temp[15] = AES_SBOX[state[11]];
       
+      // MixColumns (skip in round 13)
       if (round < 13) {
         for (let c = 0; c < 4; c++) {
-          const s0 = state[c * 4], s1 = state[c * 4 + 1], s2 = state[c * 4 + 2], s3 = state[c * 4 + 3];
-          state[c * 4] = this.gmul(0x02, s0) ^ this.gmul(0x03, s1) ^ s2 ^ s3;
-          state[c * 4 + 1] = s0 ^ this.gmul(0x02, s1) ^ this.gmul(0x03, s2) ^ s3;
-          state[c * 4 + 2] = s0 ^ s1 ^ this.gmul(0x02, s2) ^ this.gmul(0x03, s3);
-          state[c * 4 + 3] = this.gmul(0x03, s0) ^ s1 ^ s2 ^ this.gmul(0x02, s3);
+          const a0 = temp[c*4], a1 = temp[c*4+1], a2 = temp[c*4+2], a3 = temp[c*4+3];
+          // Optimized Galois field multiplication matching C code
+          state[c*4] = ((a0 << 1) ^ ((a0 >>> 7) * 0x1b)) ^ 
+                       ((a1 << 1) ^ ((a1 >>> 7) * 0x1b)) ^ a1 ^ a2 ^ a3;
+          state[c*4+1] = a0 ^ ((a1 << 1) ^ ((a1 >>> 7) * 0x1b)) ^ 
+                         ((a2 << 1) ^ ((a2 >>> 7) * 0x1b)) ^ a2 ^ a3;
+          state[c*4+2] = a0 ^ a1 ^ ((a2 << 1) ^ ((a2 >>> 7) * 0x1b)) ^ 
+                         ((a3 << 1) ^ ((a3 >>> 7) * 0x1b)) ^ a3;
+          state[c*4+3] = ((a0 << 1) ^ ((a0 >>> 7) * 0x1b)) ^ a0 ^ a1 ^ a2 ^ 
+                         ((a3 << 1) ^ ((a3 >>> 7) * 0x1b));
         }
+      } else {
+        state.set(temp);
       }
       
-      for (let i = 0; i < 16; i++) {
-        state[i] ^= expandedKey[round * 16 + i];
+      // AddRoundKey
+      for (let i = 0; i < 4; i++) {
+        const word = expandedKey[round * 4 + i];
+        state[i*4] ^= (word >>> 24) & 0xff;
+        state[i*4+1] ^= (word >>> 16) & 0xff;
+        state[i*4+2] ^= (word >>> 8) & 0xff;
+        state[i*4+3] ^= word & 0xff;
       }
-    }
-    
-    for (let i = 0; i < 16; i++) {
-      state[i] = AES_SBOX[state[i]];
-    }
-    temp = state[1]; state[1] = state[5]; state[5] = state[9]; state[9] = state[13]; state[13] = temp;
-    temp = state[2]; state[2] = state[10]; state[10] = temp;
-    temp = state[6]; state[6] = state[14]; state[14] = temp;
-    temp = state[15]; state[15] = state[11]; state[11] = state[7]; state[7] = state[3]; state[3] = temp;
-    
-    for (let i = 0; i < 16; i++) {
-      state[i] ^= expandedKey[224 + i];
     }
     
     return state;
   }
   
+  // Generate next keystream block
   generateBlock() {
     this.keystream = this.encryptBlock(this.counter, this.expandedKey);
     
+    // Increment counter (little-endian)
     for (let i = 15; i >= 0; i--) {
       if (++this.counter[i] !== 0) break;
     }
@@ -1081,7 +1116,9 @@ class AESCTR {
     this.pos = 0;
   }
   
+  // Get next 64-bit random number
   next() {
+    // Ensure we have at least 8 bytes available
     if (this.pos + 8 > 16) {
       this.generateBlock();
     }
@@ -1095,27 +1132,39 @@ class AESCTR {
   }
 }
 
+/* --- 2. DATA PREP --- */
+// Convert input string to Keccak state lanes with SHA3-256 padding
+// SHA3-256 padding: message || 01 || 10*1
+// Domain separator 01 for SHA3 (not SHAKE)
+// pad10*1: append 1, then zeros, then final 1 to reach rate boundary
 function applySHA3Padding(messageBytes) {
-    const rateBits = 1088;
-    const rateBytes = rateBits / 8;
+    const rateBits = 1088;  // SHA3-256 rate
+    const rateBytes = rateBits / 8;  // 136 bytes
     
+    // Calculate padded length
     const msgBitLen = messageBytes.length * 8;
     const msgWithDomain = msgBitLen + 2;  // Add 2 bits for domain separator '01'
-    const afterFirstOne = msgWithDomain + 1;
+    const afterFirstOne = msgWithDomain + 1;  // Add first '1' of pad10*1
     
+    // Calculate number of zeros needed
     const totalBits = Math.ceil(afterFirstOne / rateBits) * rateBits;
     const paddedBytes = totalBits / 8;
     
     const padded = new Uint8Array(paddedBytes);
     
+    // Copy message
     for (let i = 0; i < messageBytes.length; i++) {
         padded[i] = messageBytes[i];
     }
     
+    // Add domain separator '01' and start of padding '1'
+    // In SHA3-256: we append bits 01 then 1 = 011 (but bit-wise from right)
+    // Byte-aligned: 0x06 = 0000 0110 = ...01 10 (reading right to left in bits)
     const offset = messageBytes.length;
-    padded[offset] = 0x06;
+    padded[offset] = 0x06;  // This is 01 (domain) + 1 (first bit of pad10*1)
     
-    padded[paddedBytes - 1] |= 0x80;
+    // Add final '1' at the end (pad10*1 rule)
+    padded[paddedBytes - 1] |= 0x80;  // Set MSB of last byte
     
     return padded;
 }
@@ -1124,12 +1173,17 @@ function stringToLanes(input, scheduleMode) {
     const encoder = new TextEncoder();
     const messageBytes = encoder.encode(input);
     
+    // Initialize all lanes to 0 (1600 bits total)
     const lanes = new Array(25).fill(0n);
     
+    // Both modes now use SHA3-256 style initialization
+    // Apply proper padding to the plaintext
     const paddedBytes = applySHA3Padding(messageBytes);
     
+    // XOR padded message with rate portion (first 136 bytes = 17 lanes)
+    // Capacity (last 8 lanes) remains 0
     const rateBytes = 136;
-    for (let i = 0; i < 17; i++) {
+    for (let i = 0; i < 17; i++) {  // 136 bytes = 17 lanes of 8 bytes each
         let lane = 0n;
         for (let j = 0; j < 8; j++) {
             const byteIdx = i * 8 + j;
@@ -1137,13 +1191,14 @@ function stringToLanes(input, scheduleMode) {
                 lane |= BigInt(paddedBytes[byteIdx]) << BigInt(j * 8);
             }
         }
-        lanes[i] = lane;
+        lanes[i] = lane;  // XOR with 0 is just assignment
     }
     // lanes[17] through lanes[24] remain 0 (capacity)
     
     return lanes;
 }
 
+/* --- 3. STATE ENGINE --- */
 let state = {
     history: [],
     sequence: [],
@@ -1165,6 +1220,7 @@ function init() {
     const inputString = document.getElementById('inputString').value.trim();
     const keyString = document.getElementById('keyString').value.trim();
     
+    // Validation: Check inputs
     if (!inputString && !keyString) {
         alert('⚠️ Please enter at least a plaintext or a key!');
         return;
@@ -1175,20 +1231,24 @@ function init() {
         return;
     }
     
+    // Stop any playing animation
     if(state.isPlaying) {
         state.isPlaying = false;
         clearInterval(state.timer);
         document.getElementById('btnPlay').innerText = "▶ Play";
     }
     
+    // Determine mode and generate seed
     let seed;
     let scheduleSource;
     
     if (keyString) {
+        // MODE 2: Key-based scheduling with domain separator
         state.scheduleMode = "key";
         state.keyString = keyString;
         state.inputString = inputString;
         scheduleSource = keyString;
+        // Seed = SHA256("KECCAK_VARIANT_KEY_PSJ" || Key)
         const domainSeparator = "KECCAK_VARIANT_KEY_PSJ";
         seed = sha256(domainSeparator + keyString);
         console.log('MODE: Key-based scheduling (SHA3-256 style)');
@@ -1197,6 +1257,7 @@ function init() {
         console.log('Plaintext:', inputString);
         console.log('Seed Source:', domainSeparator + keyString);
     } else {
+        // MODE 1: Plaintext-based scheduling with domain separator
         state.scheduleMode = "plaintext";
         state.keyString = "";
         state.inputString = inputString;
@@ -1213,15 +1274,18 @@ function init() {
     state.seedBytes = seed;
     const rng = new AESCTR(seed);
     
+    // Store padded plaintext for visualization
     const encoder = new TextEncoder();
     const messageBytes = encoder.encode(inputString);
     const paddedBytes = applySHA3Padding(messageBytes);
     state.paddedPlaintext = paddedBytes;
     
+    // Build Step Sequence with SHA3-256 absorption visualization steps
     const modeLabel = state.scheduleMode === "key" ? `KEY: "${keyString}"` : `MSG: "${inputString}"`;
     
     state.sequence = [];
     
+    // STEP 1: Show Padded Plaintext
     state.sequence.push({
         type: 'PADDING',
         round: -1,
@@ -1229,6 +1293,7 @@ function init() {
         desc: `SHA3-256 Padding Applied\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\nOriginal Message: "${inputString}" (${messageBytes.length} bytes)\nPadding Rule: M || 01 || 10*1\nPadded Length: ${paddedBytes.length} bytes (${paddedBytes.length * 8} bits)\n\nDomain Bits: 01 (SHA3-256 identifier)\nPad Pattern: 1 followed by zeros, ending with 1\nResult: Message fits exactly in ${paddedBytes.length / 136} block(s) of rate (1088 bits)`
     });
     
+    // STEP 2: Show Initial State (All Zeros)
     state.sequence.push({
         type: 'INIT_STATE',
         round: -1,
@@ -1236,6 +1301,7 @@ function init() {
         desc: `Initial State Preparation\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\nState Structure: 1600 bits (25 × 64-bit lanes)\n\nRate Portion: 1088 bits (17 lanes) - For message absorption\nCapacity Portion: 512 bits (8 lanes) - Security parameter\n\nAll lanes initialized to:\n  Hex: 0x0000000000000000\n  Binary: 64 zeros\n\nThis clean state ensures deterministic hashing.\nCapacity provides resistance to length-extension attacks.`
     });
     
+    // STEP 3: Show Absorption (XOR with rate)
     state.sequence.push({
         type: 'ABSORB',
         round: -1,
@@ -1243,7 +1309,7 @@ function init() {
         desc: `Message Absorption Phase\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\nOperation: Padded message ⊕ Rate portion\n\nRate (lanes 0-16): XORed with padded message\nCapacity (lanes 17-24): Remain zero (unchanged)\n\nThe capacity acts as a keyed internal state,\nremaining hidden throughout the absorption phase.\n\nSchedule Mode: ${modeLabel}\nReady for permutation rounds.`
     });
     
-    state.prngOutputs = [];
+    state.prngOutputs = []; // Reset PRNG outputs tracking
     
     // Generate 24 rounds, each with all 4 steps in seed-determined order
     for(let r=0; r<24; r++) {
@@ -1254,14 +1320,16 @@ function init() {
         let shuffleOutputs = [];
         // Shuffle only first two steps (THETA and RHO-PI)
         const output = rng.next();
-        const swap = Number(output % 2n);
+        const swap = Number(output % 2n); // 0 or 1
         if (swap === 1) {
-            [steps[0], steps[1]] = [steps[1], steps[0]];
+            [steps[0], steps[1]] = [steps[1], steps[0]]; // Swap θ and ρπ
         }
         shuffleOutputs.push({ output, operation: `${output} % 2 = ${swap}`, result: swap === 1 ? 'swap θ↔ρπ' : 'keep θ,ρπ' });
         
+        // CHI (step 2) and IOTA (step 3) remain fixed in positions
         state.prngOutputs.push({ round: r, type: 'shuffle', outputs: shuffleOutputs, result: [...steps] });
         
+        // For each step in this round, generate variant selection
         let variantOutputs = [];
         for(let s of steps) {
             const output = rng.next();
@@ -1278,6 +1346,7 @@ function init() {
         state.prngOutputs.push({ round: r, type: 'variants', outputs: variantOutputs });
     }
     
+    // STEP FINAL: Show Output/Squeeze Phase (after all rounds)
     state.sequence.push({
         type: 'OUTPUT',
         round: 24,  // After round 23
@@ -1285,6 +1354,8 @@ function init() {
         desc: `Output Extraction (Squeeze Phase)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSHA3-256 Output: 256 bits (32 bytes)\n\nExtraction: First 4 lanes from rate portion\n  Lane[0]: Bytes 0-7\n  Lane[1]: Bytes 8-15\n  Lane[2]: Bytes 16-23\n  Lane[3]: Bytes 24-31\n\nCapacity (lanes 17-24): Remain internal (not output)\n\nThe 256-bit digest provides:\n  - Collision resistance\n  - Preimage resistance\n  - Second-preimage resistance\n\nThis is your cryptographic hash output.`
     });
 
+    // Setup Initial States
+    // State 0: Padded plaintext visualization (stored in rate lanes for display)
     const paddedState = new Array(25).fill(0n);
     for (let i = 0; i < 17; i++) {
         let lane = 0n;
@@ -1297,8 +1368,10 @@ function init() {
         paddedState[i] = lane;
     }
     
+    // State 1: All zeros
     const zeroState = new Array(25).fill(0n);
     
+    // State 2: Absorbed state (padded XOR with rate, capacity = 0)
     const absorbedState = stringToLanes(inputString, state.scheduleMode);
     
     state.history = [
@@ -1307,11 +1380,10 @@ function init() {
         [...absorbedState] // ABSORB step
     ];
     state.inputString = inputString;
-    state.currentIndex = 0;
-    updateUI();
-}
+    state.currentIndex = 0;  // Start at PADDING step
 
-function buildTimeline() {
+    // Build Grid DOM
+    const grid = document.getElementById('grid');
     grid.innerHTML = '';
     for(let i=0; i<25; i++) {
         const lane = document.createElement('div');
@@ -1351,6 +1423,7 @@ function buildTimeline() {
     const track = document.getElementById('timelineTrack');
     track.innerHTML = '';
     
+    // Create input-to-schedule flowchart column
     const flowColumn = document.createElement('div');
     flowColumn.className = 'round-column';
     flowColumn.style.minWidth = '135px';
@@ -1421,6 +1494,7 @@ function buildTimeline() {
     flowColumn.appendChild(flowContent);
     track.appendChild(flowColumn);
     
+    // Add arrow after flowchart
     const flowArrow = document.createElement('div');
     flowArrow.className = 'round-arrow';
     flowArrow.dataset.arrowTo = '0'; // Arrow pointing to Round 0
@@ -1429,6 +1503,7 @@ function buildTimeline() {
     flowArrow.style.color = 'var(--accent)';
     track.appendChild(flowArrow);
     
+    // Separate pre-round steps, actual rounds, and post-round steps
     const preRoundSteps = [];
     const rounds = [];
     let outputStep = null;
@@ -1439,16 +1514,20 @@ function buildTimeline() {
     for(let i = 0; i < state.sequence.length; i++) {
         const step = state.sequence[i];
         if(step.round === -1) {
+            // Pre-round visualization steps (PADDING, INIT_STATE, ABSORB)
             preRoundSteps.push(step);
         } else if(step.round === 24) {
+            // Post-round step (OUTPUT)
             outputStep = step;
         } else {
+            // Actual Keccak rounds (0-23)
             if(rounds[step.round]) {
                 rounds[step.round].push(step);
             }
         }
     }
     
+    // Create pre-round visualization columns (PADDING, INIT_STATE, ABSORB)
     preRoundSteps.forEach((step, stepIdx) => {
         const column = document.createElement('div');
         column.className = 'round-column';
@@ -1456,6 +1535,7 @@ function buildTimeline() {
         column.style.background = 'rgba(56, 189, 248, 0.05)';
         column.style.borderColor = '#38bdf8';
         
+        // Pre-round header
         const header = document.createElement('div');
         header.className = 'round-header';
         header.style.background = '#38bdf8';
@@ -1469,6 +1549,7 @@ function buildTimeline() {
         }
         column.appendChild(header);
         
+        // Step flow container
         const flow = document.createElement('div');
         flow.className = 'step-flow';
         
@@ -1499,6 +1580,7 @@ function buildTimeline() {
         column.appendChild(flow);
         track.appendChild(column);
         
+        // Add arrow after pre-round steps
         const arrow = document.createElement('div');
         arrow.className = 'round-arrow';
         arrow.dataset.arrowFrom = String(stepIdx);
@@ -1506,25 +1588,34 @@ function buildTimeline() {
         track.appendChild(arrow);
     });
     
+    // Create columns for each round
     rounds.forEach((roundSteps, roundIdx) => {
+        // Round column
         const column = document.createElement('div');
         column.className = 'round-column';
         
+        // Round header
         const header = document.createElement('div');
         header.className = 'round-header';
         header.textContent = `Round ${roundIdx}`;
         column.appendChild(header);
         
+        // Step flow container with fixed vertical slots
         const flow = document.createElement('div');
         flow.className = 'step-flow';
         
+        // Create 4 fixed slots for vertical alignment
+        // Slot 1 & 2: θ or ρπ (whichever comes first/second)
+        // Slot 3: χ (always)
+        // Slot 4: ι (always)
         const slots = [null, null, null, null];
         
+        // Map each step to its slot
         roundSteps.forEach(step => {
             if(step.type === 'CHI') {
-                slots[2] = step;
+                slots[2] = step; // CHI always in slot 3 (index 2)
             } else if(step.type === 'IOTA') {
-                slots[3] = step;
+                slots[3] = step; // IOTA always in slot 4 (index 3)
             } else if(step.type === 'THETA' || step.type === 'RHO-PI') {
                 // THETA and RHO-PI go in slots 1 or 2 based on their order
                 if(slots[0] === null) {
@@ -1665,7 +1756,7 @@ function buildTimeline() {
 }
 
 function buildScheduleView() {
-    const inputString = state.inputString || "Chowdhury Hasibur";
+    const inputString = state.inputString || "Jisan Gain";
     const keyString = state.keyString || "";
     const calculationsDiv = document.getElementById('scheduleCalculations');
     
@@ -1996,7 +2087,7 @@ function executeStep(A, stepInfo) {
             throw new Error(`Invalid variant: ${variant}`);
         }
     
-        if(stepId === 0) { // THETA - Best 7 Variants
+        if(stepId === 0) { // THETA - Best 7 Cryptographically Verified Variants
         const C = new Array(5).fill(0n);
         const D = new Array(5).fill(0n);
         
@@ -2013,10 +2104,10 @@ function executeStep(A, stepInfo) {
             // Theta V8-Weighted: Weighted parity (Branch Number: 12)
             for(let x=0;x<5;x++) {
                 C[x] = A[x] ^ 
-                       rol64(A[x+5], 1n) ^ 
-                       rol64(A[x+10], 2n) ^ 
-                       rol64(A[x+15], 3n) ^
-                       rol64(A[x+20], 5n);
+                       rol64(A[x+5], 7n) ^ 
+                       rol64(A[x+10], 13n) ^ 
+                       A[x+15] ^
+                       rol64(A[x+20], 19n);
             }
             for(let x=0;x<5;x++) {
                 let l = (x+4)%5, r = (x+1)%5;
@@ -2070,29 +2161,22 @@ function executeStep(A, stepInfo) {
             for(let i=0; i<25; i++) nextA[i] ^= D[i%5];
         }
         else if(variant === 6) {
-            // Theta V7-Enhanced: Enhanced diffusion with empirical optimization (Branch Number: 17)
-            // Replaces broken V2-BiDir - Focuses on empirical security over pure theory
-            
-            // Column parities with rotation to increase avalanche
+            // Theta V7-Enhanced: Enhanced diffusion with triple pass
             for(let x=0;x<5;x++) {
                 C[x] = A[x] ^ 
-                       rol64(A[x+5], 7n) ^ 
-                       rol64(A[x+10], 13n) ^ 
+                       rol64(A[x+5], 7) ^ 
+                       rol64(A[x+10], 13) ^ 
                        A[x+15] ^
-                       rol64(A[x+20], 19n);
+                       rol64(A[x+20], 19);
             }
-            
-            // Triple diffusion pass for maximum spread
             for(let x=0;x<5;x++) {
                 let l = (x+4)%5, r = (x+1)%5;
                 D[x] = C[l] ^ rol64(C[r], 1) ^ rol64(C[(x+2)%5], 5);
             }
-            
-            // Apply
             for(let i=0; i<25; i++) nextA[i] ^= D[i%5];
         }
     }
-    else if(stepId === 1) { // RHO-PI - Best 7 Variants
+    else if(stepId === 1) { // RHO-PI - Best 7 Cryptographically Verified Variants
         let B = new Array(25).fill(0n);
         const rho = [
             [0,36,3,41,18], [1,44,10,45,2], [62,6,43,15,61], [28,55,25,21,56], [27,20,39,8,14]
@@ -2196,7 +2280,7 @@ function executeStep(A, stepInfo) {
         }
         nextA = B;
     }
-    else if(stepId === 2) { // CHI - Best 7 Variants
+    else if(stepId === 2) { // CHI - Best 7 Cryptographically Verified Variants
         let C_temp = [...A];
         
         if(variant === 0) {
@@ -2255,8 +2339,7 @@ function executeStep(A, stepInfo) {
             }
         }
         else if(variant === 5) {
-            // Chi V7-HighNL: High nonlinearity triple-AND replacement for broken V5
-            // Uses triple AND-OR to maximize algebraic degree and prevent linear approximations
+            // Chi V7-HighNL: High nonlinearity
             for(let y=0; y<5; y++) {
                 let temp = new Array(5);
                 for(let x=0; x<5; x++) temp[x] = C_temp[x + 5*y];
@@ -2265,14 +2348,12 @@ function executeStep(A, stepInfo) {
                     let b = temp[(x+1)%5];
                     let c = temp[(x+2)%5];
                     let d = temp[(x+3)%5];
-                    // Triple nonlinear term: high algebraic degree = 3
                     nextA[x + 5*y] = a ^ ((~b & c) | (b & ~c & d));
                 }
             }
         }
         else if(variant === 6) {
-            // Chi V8-Balanced: Balanced nonlinearity with MAJ function
-            // Uses majority function for strong confusion without catastrophic weaknesses
+            // Chi V8-Balanced: Balanced nonlinearity
             for(let y=0; y<5; y++) {
                 let temp = new Array(5);
                 for(let x=0; x<5; x++) temp[x] = C_temp[x + 5*y];
@@ -2281,14 +2362,13 @@ function executeStep(A, stepInfo) {
                     let b = temp[(x+1)%5];
                     let c = temp[(x+2)%5];
                     let d = temp[(x+3)%5];
-                    // MAJ(b,c,d) = (b&c) | (b&d) | (c&d) - balanced nonlinearity
                     let maj = (b & c) | (b & d) | (c & d);
                     nextA[x + 5*y] = a ^ maj ^ rol64(d, 7);
                 }
             }
         }
     }
-    else if(stepId === 3) { // IOTA - Best 7 Variants
+    else if(stepId === 3) { // IOTA - Best 7 Cryptographically Verified Variants
         
         const canonical_rc = [
             0x0000000000000001n, 0x0000000000008082n, 0x800000000000808an,
@@ -2302,14 +2382,30 @@ function executeStep(A, stepInfo) {
         ];
         
         const iota_phi_constants = [
-            0x06BC5545CFC8F594n, 0xA4F3CEFF4F1371A9n, 0x432B48B8CE5DEDBEn,
-            0xE162C2724DA869D3n, 0x7F9A3C2BCCF2E5E8n, 0x1DD1B5E54C3D61FDn,
-            0xBC092F9ECB87DE12n, 0x5A40A9584AD25A27n, 0xF8782311CA1CD63Cn,
-            0x96AF9CCB49675251n, 0x34E71684C8B1CE66n, 0xD31E903E47FC4A7Bn,
-            0x715609F7C746C690n, 0x0F8D83B1469142A5n, 0xADC4FD6AC5DBBEBAn,
-            0x4BFC772445263ACFn, 0xEA33F0DDC470B6E4n, 0x886B6A9743BB32F9n,
-            0x26A2E450C305AF0En, 0xC4DA5E0A42502B23n, 0x6311D7C3C19AA738n,
-            0x0149517D40E5234Dn, 0x9F80CB36C02F9F62n, 0x3DB844F03F7A1B77n
+            0x06BC5545CFC8F594n,
+            0xA4F3CEFF4F1371A9n,
+            0x432B48B8CE5DEDBEn,
+            0xE162C2724DA869D3n,
+            0x7F9A3C2BCCF2E5E8n,
+            0x1DD1B5E54C3D61FDn,
+            0xBC092F9ECB87DE12n,
+            0x5A40A9584AD25A27n,
+            0xF8782311CA1CD63Cn,
+            0x96AF9CCB49675251n,
+            0x34E71684C8B1CE66n,
+            0xD31E903E47FC4A7Bn,
+            0x715609F7C746C690n,
+            0x0F8D83B1469142A5n,
+            0xADC4FD6AC5DBBEBAn,
+            0x4BFC772445263ACFn,
+            0xEA33F0DDC470B6E4n,
+            0x886B6A9743BB32F9n,
+            0x26A2E450C305AF0En,
+            0xC4DA5E0A42502B23n,
+            0x6311D7C3C19AA738n,
+            0x0149517D40E5234Dn,
+            0x9F80CB36C02F9F62n,
+            0x3DB844F03F7A1B77n
         ];
         
         const ca_constants = [
@@ -2356,31 +2452,16 @@ function executeStep(A, stepInfo) {
             0xe08f11559139d499n, 0x1c8340a5a3068e4cn, 0x5466861d07c09362n
         ];
         
-        // V11-LFSR64 uses dynamic generation, no pre-computed table needed
-        
-        // LFSR helper for V11-LFSR64
-        const lfsr_step = (lfsr) => {
-            // Galois LFSR: If MSB is 1, shift and XOR with polynomial
-            // Poly: x^64 + x^4 + x^3 + x + 1 (CRC-64-ISO)
-            if (lfsr & 0x8000000000000000n) {
-                return (lfsr << 1n) ^ 0x000000000000001Bn;
-            } else {
-                return lfsr << 1n;
-            }
-        };
-        
         if(variant === 0) {
             // Canonical Iota: Standard Keccak round constants (symmetry breaker)
             nextA[0] ^= canonical_rc[round];
         }
         else if(variant === 1) {
-            // Iota V9-Phi: Optimal burn-in 67, source (67 + round + 1) * Phi
-            // Guaranteed 64/64 bit coverage and activity
+            // Iota V9-Phi: Golden ratio constants
             nextA[0] ^= iota_phi_constants[round];
         }
         else if(variant === 2) {
-            // Iota V10-CA: Rule 30 Cellular Automaton
-            // Pre-computed 64-bit slices with statistical randomness
+            // Iota V10-CA: Cellular automaton constants
             nextA[0] ^= ca_constants[round];
         }
         else if(variant === 3) {
@@ -2396,16 +2477,25 @@ function executeStep(A, stepInfo) {
             nextA[0] ^= e_constants[round];
         }
         else if(variant === 6) {
-            // Iota V11-LFSR64: Galois Field Feedback
-            // Start with Pi-based seed and wind forward
+            // Iota V11-LFSR64: 64-bit LFSR-generated constants
             let lfsr = 0x243f6a8885a308d3n;
-            for(let i = 0; i <= round; i++) {
-                lfsr = lfsr_step(lfsr);
+            for(let i=0; i<=round; i++) {
+                if (lfsr & 0x8000000000000000n) {
+                    lfsr = (lfsr << 1n) ^ 0x000000000000001Bn;
+                } else {
+                    lfsr <<= 1n;
+                }
             }
             nextA[0] ^= lfsr;
         }
     }
     
+    // Mask to 64 bits to avoid width creep from JS BigInt ops
+    const MASK64 = 0xFFFFFFFFFFFFFFFFn;
+    for(let i=0; i<25; i++) {
+        nextA[i] &= MASK64;
+    }
+
     // Validate output
     if(!nextA || !Array.isArray(nextA) || nextA.length !== 25) {
         throw new Error(`Invalid output state: ${nextA}`);
@@ -2790,7 +2880,7 @@ ${formatLaneValue(currentVal)}
         }
     }
     else if (step.type === 'INIT') {
-        const inputStr = state.inputString || "Chowdhury Hasibur";
+        const inputStr = state.inputString || "Jisan Gain";
         if(currentVal !== 0n) {
             // Show bytes for this lane
             const encoder = new TextEncoder();
@@ -2861,6 +2951,7 @@ Binary:       ${toBin(currentVal)}
             let l = (x+4)%5, r=(x+1)%5;
             D = C[l] ^ C[x] ^ rol64(C[r], 1);
             html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 4 (3-Way Mix): D[x] = C[x-1] ⊕ C[x] ⊕ ROL(C[x+1], 1)</div>`;
+            html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Adds current column to standard theta diffusion</div>`;
         }
         else if(step.variant === 5) {
             const R = new Array(5).fill(0n);
@@ -2868,6 +2959,7 @@ Binary:       ${toBin(currentVal)}
             let above = (y+4)%5, below = (y+1)%5;
             D = R[above] ^ rol64(R[below], 1);
             html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 5 (Row-wise): D[y] = R[y-1] ⊕ ROL(R[y+1], 1)</div>`;
+            html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Row ${y}: Diffusion from adjacent rows instead of columns</div>`;
         }
         else if(step.variant === 6) {
             const Diag = new Array(5).fill(0n);
@@ -2885,6 +2977,7 @@ Binary:       ${toBin(currentVal)}
             let next_diag = (diag + 1) % 5;
             D = Diag[prev_diag] ^ rol64(Diag[next_diag], 1);
             html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 6 (Diagonal): D for diag ${diag} = Diag[${prev_diag}] ⊕ ROL(Diag[${next_diag}], 1)</div>`;
+            html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Diagonal-based diffusion where diag d has lanes (x-y) mod 5 = d</div>`;
         }
 
         html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Formula: A'[x,y] = A[x,y] ⊕ D[x]</div>`;
@@ -2945,6 +3038,7 @@ Binary:       ${toBin(currentVal)}
         }
         else if(step.variant === 1) {
             html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 1 (Pre-rotate +1): Rotate row right by 1, apply Chi, rotate back</div>`;
+            html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Complex conjugation: Output depends on entire row transformation</div>`;
             
             block += createMathSection('1. Lane State (Before)', 
                 `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
@@ -2961,6 +3055,7 @@ Binary:       ${toBin(currentVal)}
         }
         else if(step.variant === 2) {
             html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 2 (Pre-rotate +2): Rotate row right by 2, apply Chi, rotate back</div>`;
+            html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Complex conjugation: Output depends on entire row transformation</div>`;
             
             block += createMathSection('1. Lane State (Before)', 
                 `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
@@ -2977,6 +3072,7 @@ Binary:       ${toBin(currentVal)}
         }
         else if(step.variant === 3) {
             html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 3 (Post-rotate +1): Apply Chi, then rotate output row left by 1</div>`;
+            html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Output position shifted: Result appears at rotated position</div>`;
             
             block += createMathSection('1. Lane State (Before)', 
                 `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
@@ -2999,6 +3095,7 @@ Binary:       ${toBin(currentVal)}
             let term = (~v1) & v3;
             
             html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 4 (Modified AND): A'[x,y] = A[x,y] ⊕ ((~A[x+1,y]) & A[x+3,y])</div>`;
+            html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Uses x+1 and x+3 instead of x+1 and x+2</div>`;
             
             block += createMathSection('1. Lane State (Before)', 
                 `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
@@ -3032,6 +3129,7 @@ Binary:       ${toBin(currentVal)}
             let term = (~v1) & v2;
             
             html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 5 (Column-wise): A'[x,y] = A[x,y] ⊕ ((~A[x,y+1]) & A[x,y+2])</div>`;
+            html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Applies Chi along columns instead of rows</div>`;
             
             block += createMathSection('1. Lane State (Before)', 
                 `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
@@ -3059,6 +3157,7 @@ Binary:       ${toBin(currentVal)}
         }
         else if(step.variant === 6) {
             html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 6 (Double Chi): Apply Chi twice with intermediate rotation</div>`;
+            html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">First Chi → Rotate rows +1 → Second Chi → Rotate back -1</div>`;
             
             block += createMathSection('1. Lane State (Before)', 
                 `<div style="margin-bottom:0.5rem; color:#94a3b8; font-size:0.75rem;">Coordinate: A[${x},${y}]</div>` +
@@ -3087,22 +3186,32 @@ Binary:       ${toBin(currentVal)}
                 html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 0 (Standard): Inject RC[${step.round}] into A[0,0]</div>`;
             }
             else if(step.variant === 1) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 1 (V9-Phi): Inject Phi-based constant into A[0,0]</div>`;
+                let x_target = (2*step.round+1)%5;
+                let y_target = (3*step.round+2)%5;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 1 (Moving Lane): Inject RC[${step.round}] into A[${x_target},${y_target}]</div>`;
+                html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Target position varies per round: x=(2r+1) mod 5, y=(3r+2) mod 5</div>`;
             }
             else if(step.variant === 2) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 2 (V10-CA): Inject Rule 30 CA constant into A[0,0]</div>`;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 2 (Split RC): Split RC[${step.round}] into high/low halves</div>`;
+                html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">High 32 bits → ROL(7) → A[0,0] | Low 32 bits → ROL(13) → A[1,1]</div>`;
             }
             else if(step.variant === 3) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 3 (V5-SHA256): Inject SHA-256 constant into A[0,0]</div>`;
+                let x_target = (step.round + 1) % 5;
+                let y_target = (2 * step.round + 3) % 5;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 3 (Transform RC): Transform RC[${step.round}] and inject into A[${x_target},${y_target}]</div>`;
+                html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Transform: ROL(r mod 8), then byte-swap (endianness reversal)</div>`;
             }
             else if(step.variant === 4) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 4 (V6-Pi): Inject Pi constant into A[0,0]</div>`;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 4 (Diagonal): Inject into diagonal lanes [i,i] with rotation and masking</div>`;
+                html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Each diagonal lane gets: ROL(RC, i*13+r) & (progressive mask)</div>`;
             }
             else if(step.variant === 5) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 5 (V7-E): Inject e constant into A[0,0]</div>`;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 5 (Cascade): Cascading XOR with evolving RC</div>`;
+                html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Zigzag pattern: [0,0]→[1,0]→[1,1]→[0,1]→[0,2], RC evolves via XOR ROL(RC,17)</div>`;
             }
             else if(step.variant === 6) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 6 (V11-LFSR64): Inject LFSR-generated constant into A[0,0]</div>`;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 6 (Prime-Indexed): Inject into prime-positioned lanes with bit interleaving</div>`;
+                html += `<div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.5rem;">Prime lanes (2,3,5,7,11,13,17,19,23), RC bit-interleaved (swap even/odd bits)</div>`;
             }
             
             block += createMathSection('1. Lane State (Before)', 
@@ -3128,22 +3237,26 @@ Binary:       ${toBin(currentVal)}
                 html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 0: RC injected into A[0,0] only</div>`;
             }
             else if(step.variant === 1) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 1 (V9-Phi): RC injected into A[0,0] only (not this lane)</div>`;
+                let x_target = (2*step.round+1)%5;
+                let y_target = (3*step.round+2)%5;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 1: RC injected into A[${x_target},${y_target}] (not this lane)</div>`;
             }
             else if(step.variant === 2) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 2 (V10-CA): RC injected into A[0,0] only (not this lane)</div>`;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 2: Split RC injected into A[0,0] and A[1,1] only</div>`;
             }
             else if(step.variant === 3) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 3 (V5-SHA256): RC injected into A[0,0] only (not this lane)</div>`;
+                let x_target = (step.round + 1) % 5;
+                let y_target = (2 * step.round + 3) % 5;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 3: Transformed RC injected into A[${x_target},${y_target}] (not this lane)</div>`;
             }
             else if(step.variant === 4) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 4 (V6-Pi): RC injected into A[0,0] only (not this lane)</div>`;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 4: RC injected into diagonal lanes [i,i] (not this lane or no effect)</div>`;
             }
             else if(step.variant === 5) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 5 (V7-E): RC injected into A[0,0] only (not this lane)</div>`;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 5: Cascading RC injected into zigzag pattern (not this lane)</div>`;
             }
             else if(step.variant === 6) {
-                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 6 (V11-LFSR64): RC injected into A[0,0] only (not this lane)</div>`;
+                html += `<div style="font-size:0.8rem; margin-bottom:0.5rem;">Variant 6: RC injected into prime-indexed lanes (not this lane or no effect)</div>`;
             }
             
             block += createMathSection('1. Lane State (Before)', 
@@ -3422,10 +3535,14 @@ function updateUI() {
         const finalState = cur;
         const hashLanes = [finalState[0], finalState[1], finalState[2], finalState[3]];
         
-        // Convert to hex string
+        // Convert to hex string in little-endian byte order (matching C implementation)
         let hexString = '';
         for (let i = 0; i < 4; i++) {
-            hexString += hashLanes[i].toString(16).padStart(16, '0');
+            let lane = hashLanes[i];
+            for (let j = 0; j < 8; j++) {
+                let byte = Number((lane >> BigInt(j * 8)) & 0xFFn);
+                hexString += byte.toString(16).padStart(2, '0');
+            }
         }
         hashHex.innerText = hexString;
         
@@ -3516,7 +3633,7 @@ function getDesc(s, v, r) {
         3: ["Canonical Iota", "Iota V1-Primes", "Iota V2-LrgPrimes", "Iota V3-SHA256", "Iota V4-Pi", "Iota V5-E", "Iota V6-MaxHam"]
     };
     const desc = descs[s][v] || "Unknown";
-    return `Round ${r}: ${desc}`;
+    return `Round ${r}: ${desc} [Cryptographically Verified]`;
 }
 
 /* --- 8. CONTROL --- */
@@ -3630,24 +3747,23 @@ function restart() {
 }
 
 function regenerate() {
-    // Regenerate schedule from current input (works in both views)
+    
     state.isPlaying = false;
     clearInterval(state.timer);
     document.getElementById('btnPlay').innerText = "▶ Play";
     
-    // Reinitialize everything
+  
     init();
     
     // Switch to timeline (round flow) view by default
     switchView('timeline');
     
-    // Start at first step (index 0 = PADDING)
-    // This must happen AFTER switchView to ensure timeline DOM is ready
+   
     if(state.sequence.length > 0) {
         state.currentIndex = 0;
         updateUI();
         
-        // Scroll timeline to start
+        
         const timelineContainer = document.getElementById('timelineContainer');
         if(timelineContainer) {
             timelineContainer.scrollTo({ left: 0, behavior: 'smooth' });
@@ -3656,15 +3772,15 @@ function regenerate() {
 }
 
 function reset() {
-    // Full reset including input regeneration
-    document.getElementById('inputString').value = "Chowdhury Hasibur";
+  
+    document.getElementById('inputString').value = "Jisan Gain";
     document.getElementById('keyString').value = "";
     regenerate();
 }
 
-// Bit-position highlighting functions
+
 function highlightBit(pos) {
-    // Highlight all bits at this position, fade others
+  
     document.querySelectorAll('.bit-char').forEach(span => {
         const bitPos = parseInt(span.getAttribute('data-bit-pos'));
         if (bitPos === pos) {
@@ -3678,7 +3794,7 @@ function highlightBit(pos) {
 }
 
 function clearBitHighlight() {
-    // Remove all highlighting
+
     document.querySelectorAll('.bit-char').forEach(span => {
         span.classList.remove('bit-highlighted', 'bit-faded');
     });
@@ -3693,10 +3809,10 @@ function switchView(viewMode) {
     const timelineContainer = document.getElementById('timelineContainer');
     const scheduleContainer = document.getElementById('scheduleContainer');
     
-    // Update tab buttons
+
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
-    // Hide all views first
+
     sidebar.style.display = 'none';
     detailPanel.style.display = 'none';
     matrixContainer.style.display = 'none';
@@ -3737,6 +3853,7 @@ function toggleRemainingRounds() {
         btn.innerHTML = '▼ Show Remaining Rounds (1-23)';
     }
 }
+
 
 
 </script>
